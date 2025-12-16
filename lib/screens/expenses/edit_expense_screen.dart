@@ -2,29 +2,42 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../services/expense_service.dart';
-import '../../services/gamification_service.dart';
 import '../../services/category_service.dart';
+import '../../models/expense.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_theme.dart';
 
-/// Pantalla para agregar un nuevo gasto
-class AddExpenseScreen extends StatefulWidget {
-  const AddExpenseScreen({super.key});
+/// Pantalla para editar un gasto existente
+class EditExpenseScreen extends StatefulWidget {
+  final Expense expense;
+
+  const EditExpenseScreen({super.key, required this.expense});
 
   @override
-  State<AddExpenseScreen> createState() => _AddExpenseScreenState();
+  State<EditExpenseScreen> createState() => _EditExpenseScreenState();
 }
 
-class _AddExpenseScreenState extends State<AddExpenseScreen> {
+class _EditExpenseScreenState extends State<EditExpenseScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _amountController = TextEditingController();
-  final _noteController = TextEditingController();
+  late final TextEditingController _amountController;
+  late final TextEditingController _noteController;
   
-  String? _selectedCategory;
-  String? _selectedSubcategory;
-  DateTime _selectedDate = DateTime.now();
-  String _selectedIcon = '💰';
+  late String? _selectedCategory;
+  late String? _selectedSubcategory;
+  late DateTime _selectedDate;
+  late String _selectedIcon;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _amountController = TextEditingController(text: widget.expense.amount.toString());
+    _noteController = TextEditingController(text: widget.expense.note ?? '');
+    _selectedCategory = widget.expense.category;
+    _selectedSubcategory = widget.expense.subcategory.isEmpty ? null : widget.expense.subcategory;
+    _selectedDate = widget.expense.date;
+    _selectedIcon = widget.expense.icon;
+  }
 
   @override
   void dispose() {
@@ -60,38 +73,34 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     setState(() => _isLoading = true);
 
     final expenseService = context.read<ExpenseService>();
-    final gamificationService = context.read<GamificationService>();
 
-    final success = await expenseService.addExpense(
+    final updatedExpense = Expense(
+      id: widget.expense.id,
       amount: double.parse(_amountController.text),
       category: _selectedCategory!,
       subcategory: _selectedSubcategory ?? '',
       date: _selectedDate,
       note: _noteController.text.isEmpty ? null : _noteController.text,
       icon: _selectedIcon,
+      isQuickAction: widget.expense.isQuickAction,
     );
 
-    if (success) {
-      await gamificationService.updateStreak();
-      await gamificationService.checkExpenseAchievements(
-        expenseService.expenseCount,
-      );
+    final success = await expenseService.updateExpense(updatedExpense);
 
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Gasto registrado correctamente'),
-            backgroundColor: AppTheme.successColor,
-          ),
-        );
-      }
+    if (success && mounted) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gasto actualizado correctamente'),
+          backgroundColor: AppTheme.successColor,
+        ),
+      );
     } else {
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Error al registrar el gasto'),
+            content: Text('Error al actualizar el gasto'),
             backgroundColor: AppTheme.errorColor,
           ),
         );
@@ -103,7 +112,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nuevo Gasto'),
+        title: const Text('Editar Gasto'),
       ),
       body: Form(
         key: _formKey,
@@ -118,7 +127,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                 prefixText: '€ ',
                 suffixIcon: Icon(Icons.euro),
               ),
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Por favor ingresa un monto';
@@ -227,7 +236,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                       width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Guardar Gasto'),
+                  : const Text('Actualizar Gasto'),
             ),
           ],
         ),

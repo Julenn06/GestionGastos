@@ -4,6 +4,12 @@ import '../../services/expense_service.dart';
 import '../../services/export_service.dart';
 import '../../services/gamification_service.dart';
 import '../../core/theme/app_theme.dart';
+import 'manage_quick_actions_screen.dart';
+import 'security_settings_screen.dart';
+import 'category_management_screen.dart';
+import 'advanced_export_screen.dart';
+import '../expenses/expense_history_screen.dart';
+import '../investments/investment_history_screen.dart';
 
 /// Pantalla de ajustes y configuración
 class SettingsScreen extends StatelessWidget {
@@ -15,19 +21,115 @@ class SettingsScreen extends StatelessWidget {
       children: [
         _buildSection(
           context,
+          'Gestión',
+          [
+            ListTile(
+              leading: const Icon(Icons.category, color: Colors.purple),
+              title: const Text('Categorías'),
+              subtitle: const Text('Gestionar categorías personalizadas'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CategoryManagementScreen(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.receipt_long, color: AppTheme.primaryColor),
+              title: const Text('Historial de Gastos'),
+              subtitle: const Text('Ver, editar y eliminar gastos'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ExpenseHistoryScreen(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.trending_up, color: AppTheme.secondaryColor),
+              title: const Text('Mis Inversiones'),
+              subtitle: const Text('Ver y gestionar inversiones'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const InvestmentHistoryScreen(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.flash_on, color: Colors.orange),
+              title: const Text('Acciones Rápidas'),
+              subtitle: const Text('Gestionar acciones rápidas'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ManageQuickActionsScreen(),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        _buildSection(
+          context,
+          'Seguridad',
+          [
+            ListTile(
+              leading: const Icon(Icons.security, color: Colors.green),
+              title: const Text('PIN y Biometría'),
+              subtitle: const Text('Configurar seguridad de la app'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SecuritySettingsScreen(),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        _buildSection(
+          context,
           'Exportar Datos',
           [
             ListTile(
+              leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
+              title: const Text('Exportación Avanzada'),
+              subtitle: const Text('PDF con gráficos o Excel'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AdvancedExportScreen(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.file_download, color: AppTheme.primaryColor),
               title: const Text('Exportar Gastos (CSV)'),
-              subtitle: const Text('Descarga tus gastos en formato CSV'),
+              subtitle: const Text('Descarga rápida en CSV'),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () => _exportExpensesCSV(context),
             ),
             ListTile(
               leading: const Icon(Icons.file_download, color: AppTheme.secondaryColor),
               title: const Text('Exportar Gastos (PDF)'),
-              subtitle: const Text('Genera un reporte en PDF'),
+              subtitle: const Text('Reporte simple en PDF'),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () => _exportExpensesPDF(context),
             ),

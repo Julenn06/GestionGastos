@@ -180,7 +180,11 @@ class ExpenseService extends ChangeNotifier {
     final now = DateTime.now();
     final start = DateTime(now.year, now.month, 1);
     final end = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
-    
+    return await getExpensesByCategoryPeriod(start, end);
+  }
+
+  /// Obtiene gastos agrupados por categoría en un período específico
+  Future<Map<String, double>> getExpensesByCategoryPeriod(DateTime start, DateTime end) async {
     final expenses = await getExpensesByDateRange(start, end);
     final Map<String, double> categoryTotals = {};
 

@@ -6,6 +6,7 @@ import 'services/expense_service.dart';
 import 'services/investment_service.dart';
 import 'services/quick_action_service.dart';
 import 'services/gamification_service.dart';
+import 'services/category_service.dart';
 import 'core/theme/app_theme.dart';
 import 'screens/home/home_screen.dart';
 
@@ -41,6 +42,9 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         // Proveedor de servicios
+        ChangeNotifierProvider(
+          create: (_) => CategoryService(database),
+        ),
         ChangeNotifierProvider(
           create: (_) => ExpenseService(database),
         ),

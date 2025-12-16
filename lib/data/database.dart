@@ -77,17 +77,154 @@ class Achievements extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Tabla de Categorías Personalizadas en la base de datos
+/// 
+/// Define la estructura de la tabla que almacena categorías personalizadas
+/// creadas por el usuario con sus iconos y colores asociados.
+class Categories extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get icon => text()();
+  TextColumn get color => text()();
+  TextColumn get type => text()(); // 'expense' o 'income'
+  BoolColumn get isDefault => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Base de datos principal de la aplicación
 /// 
 /// Implementa todas las operaciones CRUD (Create, Read, Update, Delete)
 /// para gestionar gastos, inversiones, acciones rápidas y logros.
 /// Utiliza Drift para un acceso type-safe y eficiente a SQLite.
-@DriftDatabase(tables: [Expenses, QuickActions, Investments, Achievements])
+@DriftDatabase(tables: [Expenses, QuickActions, Investments, Achievements, Categories])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (Migrator m) async {
+        await m.createAll();
+        // Insertar categorías predeterminadas
+        await _insertDefaultCategories();
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from < 2) {
+          await m.createTable(categories);
+          await _insertDefaultCategories();
+        }
+      },
+    );
+  }
+
+  /// Inserta las categorías predeterminadas al crear la BD
+  Future<void> _insertDefaultCategories() async {
+    final defaultCategories = [
+      CategoriesCompanion.insert(
+        id: 'cat_alimentacion',
+        name: 'Alimentación',
+        icon: '🍔',
+        color: '#FF9800',
+        type: 'expense',
+        isDefault: const Value(true),
+        createdAt: DateTime.now(),
+      ),
+      CategoriesCompanion.insert(
+        id: 'cat_transporte',
+        name: 'Transporte',
+        icon: '🚗',
+        color: '#2196F3',
+        type: 'expense',
+        isDefault: const Value(true),
+        createdAt: DateTime.now(),
+      ),
+      CategoriesCompanion.insert(
+        id: 'cat_vivienda',
+        name: 'Vivienda',
+        icon: '🏠',
+        color: '#4CAF50',
+        type: 'expense',
+        isDefault: const Value(true),
+        createdAt: DateTime.now(),
+      ),
+      CategoriesCompanion.insert(
+        id: 'cat_entretenimiento',
+        name: 'Entretenimiento',
+        icon: '🎮',
+        color: '#E91E63',
+        type: 'expense',
+        isDefault: const Value(true),
+        createdAt: DateTime.now(),
+      ),
+      CategoriesCompanion.insert(
+        id: 'cat_salud',
+        name: 'Salud',
+        icon: '⚕️',
+        color: '#F44336',
+        type: 'expense',
+        isDefault: const Value(true),
+        createdAt: DateTime.now(),
+      ),
+      CategoriesCompanion.insert(
+        id: 'cat_educacion',
+        name: 'Educación',
+        icon: '📚',
+        color: '#9C27B0',
+        type: 'expense',
+        isDefault: const Value(true),
+        createdAt: DateTime.now(),
+      ),
+      CategoriesCompanion.insert(
+        id: 'cat_ropa',
+        name: 'Ropa',
+        icon: '👕',
+        color: '#FF5722',
+        type: 'expense',
+        isDefault: const Value(true),
+        createdAt: DateTime.now(),
+      ),
+      CategoriesCompanion.insert(
+        id: 'cat_tecnologia',
+        name: 'Tecnología',
+        icon: '💻',
+        color: '#607D8B',
+        type: 'expense',
+        isDefault: const Value(true),
+        createdAt: DateTime.now(),
+      ),
+      CategoriesCompanion.insert(
+        id: 'cat_servicios',
+        name: 'Servicios',
+        icon: '🔧',
+        color: '#795548',
+        type: 'expense',
+        isDefault: const Value(true),
+        createdAt: DateTime.now(),
+      ),
+      CategoriesCompanion.insert(
+        id: 'cat_otros',
+        name: 'Otros',
+        icon: '📦',
+        color: '#9E9E9E',
+        type: 'expense',
+        isDefault: const Value(true),
+        createdAt: DateTime.now(),
+      ),
+    ];
+
+    for (final category in defaultCategories) {
+      await into(categories).insert(
+        category,
+        mode: InsertMode.insertOrIgnore,
+      );
+    }
+  }
 
   // ==================== OPERACIONES DE GASTOS ====================
 
@@ -259,6 +396,51 @@ class AppDatabase extends _$AppDatabase {
     
     final result = await query.getSingle();
     return result.read(achievements.id.count()) ?? 0;
+  }
+
+  // ==================== OPERACIONES DE CATEGORÍAS ====================
+
+  /// Obtiene todas las categorías de gastos
+  Future<List<Category>> getAllCategories({String? type}) async {
+    final query = select(categories);
+    if (type != null) {
+      query.where((tbl) => tbl.type.equals(type));
+    }
+    return await (query..orderBy([(tbl) => OrderingTerm.asc(tbl.name)])).get();
+  }
+
+  /// Obtiene una categoría por ID
+  Future<Category?> getCategoryById(String id) async {
+    return await (select(categories)..where((tbl) => tbl.id.equals(id)))
+        .getSingleOrNull();
+  }
+
+  /// Inserta una nueva categoría
+  Future<int> insertCategory(CategoriesCompanion category) async {
+    return await into(categories).insert(category);
+  }
+
+  /// Actualiza una categoría
+  Future<bool> updateCategory(Category category) async {
+    return await update(categories).replace(category);
+  }
+
+  /// Elimina una categoría (solo si no es predeterminada)
+  Future<int> deleteCategory(String id) async {
+    return await (delete(categories)
+          ..where((tbl) => tbl.id.equals(id) & tbl.isDefault.equals(false)))
+        .go();
+  }
+
+  /// Verifica si una categoría tiene gastos asociados
+  Future<bool> categoryHasExpenses(String categoryName) async {
+    final query = selectOnly(expenses)
+      ..addColumns([expenses.id.count()])
+      ..where(expenses.category.equals(categoryName));
+    
+    final result = await query.getSingle();
+    final count = result.read(expenses.id.count()) ?? 0;
+    return count > 0;
   }
 }
 

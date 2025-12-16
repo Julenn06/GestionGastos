@@ -138,6 +138,34 @@ class QuickActionService extends ChangeNotifier {
     }
   }
 
+  /// Crea una nueva acción rápida personalizada
+  Future<bool> createQuickAction({
+    required String name,
+    required double amount,
+    required String category,
+    required String subcategory,
+    required String icon,
+    String? color,
+  }) async {
+    return await addQuickAction(
+      name: name,
+      amount: amount,
+      category: category,
+      subcategory: subcategory,
+      icon: icon,
+      color: color,
+    );
+  }
+
+  /// Alterna el estado activo/inactivo de una acción rápida
+  Future<bool> toggleQuickAction(String id, bool isActive) async {
+    if (isActive) {
+      return await activateQuickAction(id);
+    } else {
+      return await deactivateQuickAction(id);
+    }
+  }
+
   /// Reordena las acciones rápidas
   Future<bool> reorderQuickActions(int oldIndex, int newIndex) async {
     try {
