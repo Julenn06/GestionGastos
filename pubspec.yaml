@@ -12,9 +12,7 @@ dependencies:
     sdk: flutter
 
   # UI & Icons
-  cupertino_icons: ^1.0.8
   google_fonts: ^6.2.1
-  flutter_animate: ^4.5.0
   
   # State Management
   provider: ^6.1.2
@@ -49,34 +47,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   drift_dev: ^2.20.3
   build_runner: ^2.4.13
-  flutter_launcher_icons: ^0.14.2
 
 
 flutter:
   uses-material-design: true
-  
-  # Assets para iconos personalizados
-  assets:
-    - assets/icons/
-
-# Configuración de iconos de la aplicación
-flutter_launcher_icons:
-  android: true
-  ios: true
-  remove_alpha_ios: true
-  image_path: "assets/icons/logo.png"
-  adaptive_icon_background: "#0A0E27"
-  adaptive_icon_foreground: "assets/icons/logo.png"
-  windows:
-    generate: true
-    image_path: "assets/icons/logo.png"
-    icon_size: 48
-  macos:
-    generate: true
-    image_path: "assets/icons/logo.png"
-  web:
-    generate: true
-    image_path: "assets/icons/logo.png"
-  linux:
-    generate: true
-    image_path: "assets/icons/logo.png"
