@@ -1,0 +1,82 @@
+name: gestion_de_gastos
+description: "Aplicación profesional de gestión de finanzas personales e inversiones"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # UI & Icons
+  cupertino_icons: ^1.0.8
+  google_fonts: ^6.2.1
+  flutter_animate: ^4.5.0
+  
+  # State Management
+  provider: ^6.1.2
+  
+  # Database
+  drift: ^2.20.3
+  sqlite3_flutter_libs: ^0.5.24
+  path_provider: ^2.1.5
+  path: ^1.9.0
+  
+  # Charts & Graphs
+  fl_chart: ^1.1.1
+  
+  # Security
+  local_auth: ^3.0.0
+  flutter_secure_storage: ^10.0.0
+  
+  # Export functionality
+  csv: ^6.0.0
+  pdf: ^3.11.1
+  printing: ^5.13.4
+  share_plus: ^12.0.1
+  
+  # Utilities
+  intl: ^0.20.2
+  uuid: ^4.5.1
+  shared_preferences: ^2.3.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  drift_dev: ^2.20.3
+  build_runner: ^2.4.13
+  flutter_launcher_icons: ^0.14.2
+
+
+flutter:
+  uses-material-design: true
+  
+  # Assets para iconos personalizados
+  assets:
+    - assets/icons/
+
+# Configuración de iconos de la aplicación
+flutter_launcher_icons:
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/icons/logo.png"
+  adaptive_icon_background: "#0A0E27"
+  adaptive_icon_foreground: "assets/icons/logo.png"
+  windows:
+    generate: true
+    image_path: "assets/icons/logo.png"
+    icon_size: 48
+  macos:
+    generate: true
+    image_path: "assets/icons/logo.png"
+  web:
+    generate: true
+    image_path: "assets/icons/logo.png"
+  linux:
+    generate: true
+    image_path: "assets/icons/logo.png"
