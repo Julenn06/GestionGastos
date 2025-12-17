@@ -90,12 +90,11 @@ class _InvestmentHistoryScreenState extends State<InvestmentHistoryScreen> {
             itemBuilder: (context, index) {
               final investment = investments[index];
               final profitLoss = investment.currentValue - investment.amountInvested;
-              final profitLossPercent = (profitLoss / investment.amountInvested * 100);
               final isProfit = profitLoss >= 0;
 
               return Card(
                 margin: const EdgeInsets.only(bottom: AppTheme.paddingM),
-                child: ExpansionTile(
+                child: ListTile(
                   leading: CircleAvatar(
                     backgroundColor: (isProfit ? AppTheme.successColor : AppTheme.errorColor)
                         .withValues(alpha: 0.2),
@@ -105,131 +104,90 @@ class _InvestmentHistoryScreenState extends State<InvestmentHistoryScreen> {
                     ),
                   ),
                   title: Text(
-                    investment.name,
+                    investment.type,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  subtitle: Text(investment.type),
-                  trailing: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (investment.platform != null && investment.platform!.isNotEmpty)
+                        Text(investment.platform!),
+                      Text(
+                        _dateFormat.format(investment.dateInvested),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      if (investment.notes != null && investment.notes!.isNotEmpty)
+                        Text(
+                          investment.notes!,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic,
+                            color: Colors.grey[500],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         '${investment.currentValue.toStringAsFixed(2)}€',
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: isProfit ? AppTheme.successColor : AppTheme.errorColor,
                               fontWeight: FontWeight.bold,
                             ),
                       ),
-                      Text(
-                        '${isProfit ? '+' : ''}${profitLossPercent.toStringAsFixed(1)}%',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isProfit ? AppTheme.successColor : AppTheme.errorColor,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      PopupMenuButton(
+                        icon: const Icon(Icons.more_vert),
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(
+                            value: 'edit',
+                            child: Row(
+                              children: [
+                                Icon(Icons.edit, size: 20),
+                                SizedBox(width: 8),
+                                Text('Editar'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete, size: 20, color: AppTheme.errorColor),
+                                SizedBox(width: 8),
+                                Text('Eliminar', style: TextStyle(color: AppTheme.errorColor)),
+                              ],
+                            ),
+                          ),
+                        ],
+                        onSelected: (value) async {
+                          if (value == 'edit') {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => EditInvestmentScreen(
+                                  investment: investment,
+                                ),
+                              ),
+                            );
+                          } else if (value == 'delete') {
+                            await _deleteInvestment(investment.id);
+                          }
+                        },
                       ),
                     ],
                   ),
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(AppTheme.paddingM),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildDetailRow(
-                            'Invertido:',
-                            '${investment.amountInvested.toStringAsFixed(2)}€',
-                          ),
-                          _buildDetailRow(
-                            'Valor actual:',
-                            '${investment.currentValue.toStringAsFixed(2)}€',
-                          ),
-                          _buildDetailRow(
-                            'Ganancia/Pérdida:',
-                            '${isProfit ? '+' : ''}${profitLoss.toStringAsFixed(2)}€',
-                            color: isProfit ? AppTheme.successColor : AppTheme.errorColor,
-                          ),
-                          if (investment.platform != null)
-                            _buildDetailRow('Plataforma:', investment.platform!),
-                          _buildDetailRow(
-                            'Fecha inversión:',
-                            _dateFormat.format(investment.dateInvested),
-                          ),
-                          if (investment.notes != null && investment.notes!.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: AppTheme.paddingS),
-                              child: Text(
-                                investment.notes!,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontStyle: FontStyle.italic,
-                                  color: Colors.grey[500],
-                                ),
-                              ),
-                            ),
-                          const SizedBox(height: AppTheme.paddingM),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              TextButton.icon(
-                                onPressed: () async {
-                                  await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => EditInvestmentScreen(
-                                        investment: investment,
-                                      ),
-                                    ),
-                                  );
-                                },
-                                icon: const Icon(Icons.edit),
-                                label: const Text('Editar'),
-                              ),
-                              const SizedBox(width: AppTheme.paddingS),
-                              TextButton.icon(
-                                onPressed: () => _deleteInvestment(investment.id),
-                                icon: const Icon(Icons.delete, color: AppTheme.errorColor),
-                                label: const Text(
-                                  'Eliminar',
-                                  style: TextStyle(color: AppTheme.errorColor),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
                 ),
               );
             },
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value, {Color? color}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
-          ),
-        ],
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../services/expense_service.dart';
 import '../../services/gamification_service.dart';
 import '../../services/category_service.dart';
+import '../../widgets/common/success_snackbar.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_theme.dart';
 
@@ -51,8 +52,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     if (!_formKey.currentState!.validate()) return;
     
     if (_selectedCategory == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor selecciona una categoría')),
+      SuccessSnackBar.showError(
+        context,
+        title: 'Categoría requerida',
+        subtitle: 'Por favor selecciona una categoría para continuar',
+        icon: Icons.error_outline,
       );
       return;
     }
@@ -79,21 +83,21 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Gasto registrado correctamente'),
-            backgroundColor: AppTheme.successColor,
-          ),
+        SuccessSnackBar.show(
+          context,
+          title: 'Gasto registrado',
+          subtitle: '${double.parse(_amountController.text).toStringAsFixed(2)}€ en $_selectedCategory',
+          icon: Icons.check_circle_outline,
         );
       }
     } else {
       setState(() => _isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al registrar el gasto'),
-            backgroundColor: AppTheme.errorColor,
-          ),
+        SuccessSnackBar.showError(
+          context,
+          title: 'Error al registrar',
+          subtitle: 'No se pudo guardar el gasto. Inténtalo de nuevo',
+          icon: Icons.error_outline,
         );
       }
     }

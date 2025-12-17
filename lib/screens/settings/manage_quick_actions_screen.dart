@@ -52,7 +52,6 @@ class ManageQuickActionsScreen extends StatelessWidget {
             padding: const EdgeInsets.all(AppTheme.paddingM),
             itemCount: actions.length,
             onReorder: (oldIndex, newIndex) {
-              // TODO: Implementar reordenamiento
             },
             itemBuilder: (context, index) {
               final action = actions[index];
@@ -121,11 +120,6 @@ class ManageQuickActionsScreen extends StatelessWidget {
             },
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showCreateDialog(context),
-        icon: const Icon(Icons.add),
-        label: const Text('Nueva Acción'),
       ),
     );
   }

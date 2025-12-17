@@ -94,17 +94,55 @@ class Categories extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Tabla de Acciones Rápidas de Inversiones en la base de datos
+/// 
+/// Define la estructura de la tabla que almacena las acciones rápidas
+/// para inversiones recurrentes.
+class QuickInvestments extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get type => text()();
+  RealColumn get amount => real()();
+  TextColumn get linkedInvestmentId => text().nullable()();
+  TextColumn get investmentName => text()();
+  TextColumn get platform => text().nullable()();
+  TextColumn get icon => text()();
+  TextColumn get color => text().nullable()();
+  IntColumn get order => integer().withDefault(const Constant(0))();
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Tabla de Ingresos en la base de datos
+/// 
+/// Define la estructura de la tabla que almacena todos los ingresos del usuario.
+class Incomes extends Table {
+  TextColumn get id => text()();
+  RealColumn get amount => real()();
+  TextColumn get category => text()();
+  TextColumn get subcategory => text()();
+  DateTimeColumn get date => dateTime()();
+  TextColumn get note => text().nullable()();
+  TextColumn get icon => text()();
+  BoolColumn get isQuickAction => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Base de datos principal de la aplicación
 /// 
 /// Implementa todas las operaciones CRUD (Create, Read, Update, Delete)
 /// para gestionar gastos, inversiones, acciones rápidas y logros.
 /// Utiliza Drift para un acceso type-safe y eficiente a SQLite.
-@DriftDatabase(tables: [Expenses, QuickActions, Investments, Achievements, Categories])
+@DriftDatabase(tables: [Expenses, QuickActions, Investments, Achievements, Categories, QuickInvestments, Incomes])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
@@ -118,6 +156,12 @@ class AppDatabase extends _$AppDatabase {
         if (from < 2) {
           await m.createTable(categories);
           await _insertDefaultCategories();
+        }
+        if (from < 3) {
+          await m.createTable(quickInvestments);
+        }
+        if (from < 4) {
+          await m.createTable(incomes);
         }
       },
     );
@@ -441,6 +485,94 @@ class AppDatabase extends _$AppDatabase {
     final result = await query.getSingle();
     final count = result.read(expenses.id.count()) ?? 0;
     return count > 0;
+  }
+
+  // ==================== OPERACIONES DE ACCIONES RÁPIDAS DE INVERSIONES ====================
+
+  /// Obtiene todas las acciones rápidas de inversión activas
+  Future<List<QuickInvestment>> getActiveQuickInvestments() async {
+    return await (select(quickInvestments)
+          ..where((tbl) => tbl.isActive.equals(true))
+          ..orderBy([(tbl) => OrderingTerm.asc(tbl.order)]))
+        .get();
+  }
+
+  /// Obtiene todas las acciones rápidas de inversión
+  Future<List<QuickInvestment>> getAllQuickInvestments() async {
+    return await (select(quickInvestments)
+          ..orderBy([(tbl) => OrderingTerm.asc(tbl.order)]))
+        .get();
+  }
+
+  /// Inserta una acción rápida de inversión
+  Future<int> insertQuickInvestment(QuickInvestmentsCompanion quickInvestment) async {
+    return await into(quickInvestments).insert(quickInvestment);
+  }
+
+  /// Actualiza una acción rápida de inversión
+  Future<bool> updateQuickInvestment(QuickInvestment quickInvestment) async {
+    return await update(quickInvestments).replace(quickInvestment);
+  }
+
+  /// Elimina una acción rápida de inversión
+  Future<int> deleteQuickInvestment(String id) async {
+    return await (delete(quickInvestments)..where((tbl) => tbl.id.equals(id))).go();
+  }
+
+  // ==================== OPERACIONES DE INGRESOS ====================
+
+  /// Obtiene todos los ingresos
+  Future<List<Income>> getAllIncomes() async {
+    return await (select(incomes)..orderBy([(tbl) => OrderingTerm.desc(tbl.date)])).get();
+  }
+
+  /// Obtiene ingresos por rango de fechas
+  Future<List<Income>> getIncomesByDateRange(DateTime start, DateTime end) async {
+    return await (select(incomes)
+          ..where((tbl) => tbl.date.isBiggerOrEqualValue(start) & tbl.date.isSmallerOrEqualValue(end))
+          ..orderBy([(tbl) => OrderingTerm.desc(tbl.date)]))
+        .get();
+  }
+
+  /// Obtiene ingresos por categoría
+  Future<List<Income>> getIncomesByCategory(String category) async {
+    return await (select(incomes)
+          ..where((tbl) => tbl.category.equals(category))
+          ..orderBy([(tbl) => OrderingTerm.desc(tbl.date)]))
+        .get();
+  }
+
+  /// Inserta un ingreso
+  Future<int> insertIncome(IncomesCompanion income) async {
+    return await into(incomes).insert(income);
+  }
+
+  /// Actualiza un ingreso
+  Future<bool> updateIncome(Income income) async {
+    return await update(incomes).replace(income);
+  }
+
+  /// Elimina un ingreso
+  Future<int> deleteIncome(String id) async {
+    return await (delete(incomes)..where((tbl) => tbl.id.equals(id))).go();
+  }
+
+  /// Obtiene el total de ingresos en un periodo
+  Future<double> getTotalIncomes(DateTime start, DateTime end) async {
+    final query = selectOnly(incomes)
+      ..addColumns([incomes.amount.sum()])
+      ..where(incomes.date.isBiggerOrEqualValue(start) & incomes.date.isSmallerOrEqualValue(end));
+
+    final result = await query.getSingle();
+    return result.read(incomes.amount.sum()) ?? 0.0;
+  }
+
+  /// Obtiene el total de ingresos del mes actual
+  Future<double> getMonthlyIncomes() async {
+    final now = DateTime.now();
+    final startOfMonth = DateTime(now.year, now.month, 1);
+    final endOfMonth = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+    return await getTotalIncomes(startOfMonth, endOfMonth);
   }
 }
 

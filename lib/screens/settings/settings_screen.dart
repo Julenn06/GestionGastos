@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/expense_service.dart';
+import '../../services/investment_service.dart';
+import '../../services/income_service.dart';
+import '../../services/quick_action_service.dart';
+import '../../services/quick_investment_service.dart';
 import '../../services/export_service.dart';
 import '../../services/gamification_service.dart';
 import '../../core/theme/app_theme.dart';
 import 'manage_quick_actions_screen.dart';
 import 'security_settings_screen.dart';
-import 'category_management_screen.dart';
 import 'advanced_export_screen.dart';
 import '../expenses/expense_history_screen.dart';
 import '../investments/investment_history_screen.dart';
@@ -23,20 +26,6 @@ class SettingsScreen extends StatelessWidget {
           context,
           'Gestión',
           [
-            ListTile(
-              leading: const Icon(Icons.category, color: Colors.purple),
-              title: const Text('Categorías'),
-              subtitle: const Text('Gestionar categorías personalizadas'),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const CategoryManagementScreen(),
-                  ),
-                );
-              },
-            ),
             ListTile(
               leading: const Icon(Icons.receipt_long, color: AppTheme.primaryColor),
               title: const Text('Historial de Gastos'),
@@ -170,8 +159,145 @@ class SettingsScreen extends StatelessWidget {
             ),
           ],
         ),
+        _buildSection(
+          context,
+          'Zona de Peligro',
+          [
+            ListTile(
+              leading: const Icon(Icons.delete_forever, color: AppTheme.errorColor),
+              title: const Text('Eliminar Todos los Datos', style: TextStyle(color: AppTheme.errorColor)),
+              subtitle: const Text('Borra todos los gastos, inversiones e ingresos'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: AppTheme.errorColor),
+              onTap: () => _confirmDeleteAllData(context),
+            ),
+          ],
+        ),
       ],
     );
+  }
+
+  Future<void> _confirmDeleteAllData(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('⚠️ Eliminar Todos los Datos'),
+        content: const Text(
+          'Esta acción eliminará TODOS tus datos:\n\n'
+          '• Gastos\n'
+          '• Inversiones\n'
+          '• Ingresos\n'
+          '• Acciones rápidas personalizadas\n'
+          '• Inversiones rápidas personalizadas\n\n'
+          'Esta acción NO se puede deshacer.\n\n'
+          '¿Estás completamente seguro?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(
+              foregroundColor: AppTheme.errorColor,
+            ),
+            child: const Text('Eliminar Todo', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      await _deleteAllData(context);
+    }
+  }
+
+  Future<void> _deleteAllData(BuildContext context) async {
+    try {
+      // Mostrar diálogo de carga
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: Card(
+            child: Padding(
+              padding: EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Eliminando todos los datos...'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Obtener servicios
+      final expenseService = context.read<ExpenseService>();
+      final investmentService = context.read<InvestmentService>();
+      final incomeService = context.read<IncomeService>();
+      final quickActionService = context.read<QuickActionService>();
+      final quickInvestmentService = context.read<QuickInvestmentService>();
+
+      // Eliminar todos los gastos
+      final expenses = expenseService.expenses.toList();
+      for (final expense in expenses) {
+        await expenseService.deleteExpense(expense.id);
+      }
+
+      // Eliminar todas las inversiones
+      final investments = investmentService.investments.toList();
+      for (final investment in investments) {
+        await investmentService.deleteInvestment(investment.id);
+      }
+
+      // Eliminar todos los ingresos
+      final incomes = incomeService.incomes.toList();
+      for (final income in incomes) {
+        await incomeService.deleteIncome(income.id);
+      }
+
+      // Eliminar acciones rápidas personalizadas (no las predeterminadas)
+      final quickActions = quickActionService.quickActions.toList();
+      for (final action in quickActions) {
+        await quickActionService.deleteQuickAction(action.id);
+      }
+
+      // Eliminar inversiones rápidas personalizadas
+      final quickInvestments = quickInvestmentService.quickInvestments.toList();
+      for (final investment in quickInvestments) {
+        await quickInvestmentService.deleteQuickInvestment(investment.id);
+      }
+
+      // Cerrar diálogo de carga
+      if (context.mounted) {
+        Navigator.pop(context);
+        
+        // Mostrar confirmación
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Todos los datos han sido eliminados'),
+            backgroundColor: AppTheme.successColor,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      // Cerrar diálogo de carga si hay error
+      if (context.mounted) {
+        Navigator.pop(context);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al eliminar datos: $e'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildSection(BuildContext context, String title, List<Widget> children) {

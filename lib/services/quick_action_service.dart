@@ -237,6 +237,22 @@ class QuickActionService extends ChangeNotifier {
     }
   }
 
+  /// Actualiza el orden de las acciones rápidas
+  Future<bool> updateOrder(List<model.QuickAction> reorderedActions) async {
+    try {
+      for (int i = 0; i < reorderedActions.length; i++) {
+        final action = reorderedActions[i].copyWith(order: i);
+        await updateQuickAction(action);
+      }
+      await loadQuickActions();
+      return true;
+    } catch (e) {
+      _error = 'Error al actualizar orden: $e';
+      notifyListeners();
+      return false;
+    }
+  }
+
   // ============ Métodos de Mapeo ============
 
   /// Convierte un objeto de base de datos a modelo

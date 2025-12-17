@@ -2,13 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/expense_service.dart';
 import '../../services/investment_service.dart';
+import '../../services/income_service.dart';
 import '../../services/quick_action_service.dart';
+import '../../services/quick_investment_service.dart';
 import '../../services/gamification_service.dart';
 import '../../widgets/common/balance_card.dart';
 import '../../widgets/common/quick_action_button.dart';
+import '../../widgets/common/quick_investment_button.dart';
+import '../../widgets/common/success_snackbar.dart';
 import '../../core/theme/app_theme.dart';
 import '../expenses/add_expense_screen.dart';
 import '../investments/add_investment_screen.dart';
+import '../income/add_income_screen.dart';
+import '../quick_actions/add_quick_action_screen.dart';
+import '../quick_actions/add_quick_investment_screen.dart';
 import '../statistics/statistics_screen.dart';
 import '../settings/settings_screen.dart';
 
@@ -27,6 +34,10 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   double _monthlyExpenses = 0;
   double _totalCurrentValue = 0;
+  double _totalIncomes = 0;
+  int _lastExpenseCount = 0;
+  int _lastIncomeCount = 0;
+  int _lastInvestmentCount = 0;
 
   @override
   void initState() {
@@ -34,16 +45,49 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadData();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Recargar si los datos han cambiado
+    final expenseService = context.watch<ExpenseService>();
+    final incomeService = context.watch<IncomeService>();
+    final investmentService = context.watch<InvestmentService>();
+    
+    bool shouldReload = false;
+    
+    if (expenseService.expenseCount != _lastExpenseCount) {
+      _lastExpenseCount = expenseService.expenseCount;
+      shouldReload = true;
+    }
+    
+    if (incomeService.incomes.length != _lastIncomeCount) {
+      _lastIncomeCount = incomeService.incomes.length;
+      shouldReload = true;
+    }
+    
+    if (investmentService.investments.length != _lastInvestmentCount) {
+      _lastInvestmentCount = investmentService.investments.length;
+      shouldReload = true;
+    }
+    
+    if (shouldReload && mounted) {
+      _loadData();
+    }
+  }
+
   Future<void> _loadData() async {
     final expenseService = context.read<ExpenseService>();
     final investmentService = context.read<InvestmentService>();
+    final incomeService = context.read<IncomeService>();
 
     final monthly = await expenseService.getMonthlyTotal();
     final currentValue = await investmentService.getTotalCurrentValue();
+    final totalIncomes = await incomeService.getAllTimeTotal();
 
     setState(() {
       _monthlyExpenses = monthly;
       _totalCurrentValue = currentValue;
+      _totalIncomes = totalIncomes;
     });
   }
 
@@ -79,12 +123,61 @@ class _HomeScreenState extends State<HomeScreen> {
       await _loadData();
 
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gasto registrado: ${action.name}'),
-            backgroundColor: AppTheme.successColor,
-            behavior: SnackBarBehavior.floating,
-          ),
+        SuccessSnackBar.show(
+          context,
+          title: 'Gasto registrado',
+          subtitle: '${action.name} - ${action.amount.toStringAsFixed(2)}€',
+          icon: Icons.check_circle_outline,
+        );
+      }
+    }
+  }
+
+  Future<void> _handleQuickInvestment(BuildContext context, investment) async {
+    final investmentService = context.read<InvestmentService>();
+
+    // Si está vinculada a una inversión existente, actualizarla
+    if (investment.linkedInvestmentId != null) {
+      final existingInvestment = investmentService.investments
+          .firstWhere((inv) => inv.id == investment.linkedInvestmentId);
+      
+      final success = await investmentService.updateInvestment(
+        existingInvestment.copyWith(
+          amountInvested: existingInvestment.amountInvested + investment.amount,
+          currentValue: existingInvestment.currentValue + investment.amount,
+          lastUpdate: DateTime.now(),
+        ),
+      );
+
+      if (success && context.mounted) {
+        await _loadData();
+        SuccessSnackBar.show(
+          context,
+          title: 'Inversión actualizada',
+          subtitle: '+${investment.amount.toStringAsFixed(2)}€ en ${investment.investmentName}',
+          icon: Icons.trending_up,
+        );
+      }
+    } else {
+      // Crear nueva inversión
+      final success = await investmentService.addInvestment(
+        type: investment.type,
+        name: investment.investmentName,
+        platform: investment.platform,
+        amountInvested: investment.amount,
+        currentValue: investment.amount,
+        dateInvested: DateTime.now(),
+        notes: 'Aportación vía acción rápida',
+        icon: investment.icon,
+      );
+
+      if (success && context.mounted) {
+        await _loadData();
+        SuccessSnackBar.show(
+          context,
+          title: 'Inversión registrada',
+          subtitle: '${investment.amount.toStringAsFixed(2)}€ en ${investment.investmentName}',
+          icon: Icons.trending_up,
         );
       }
     }
@@ -165,20 +258,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      floatingActionButton: _selectedIndex == 0
-          ? FloatingActionButton(
-              onPressed: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AddExpenseScreen(),
-                  ),
-                );
-                await _loadData();
-              },
-              child: const Icon(Icons.add),
-            )
-          : null,
     );
   }
 
@@ -192,6 +271,7 @@ class _HomeScreenState extends State<HomeScreen> {
           BalanceCard(
             totalExpenses: _monthlyExpenses,
             totalInvestments: _totalCurrentValue,
+            totalIncomes: _totalIncomes,
           ),
 
           const SizedBox(height: AppTheme.paddingM),
@@ -208,6 +288,46 @@ class _HomeScreenState extends State<HomeScreen> {
               return QuickActionsRow(
                 actions: quickActionService.activeQuickActions,
                 onActionTap: (action) => _handleQuickAction(context, action),
+                onAddNew: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AddQuickActionScreen(),
+                    ),
+                  );
+                },
+                onReorder: (reorderedActions) async {
+                  await quickActionService.updateOrder(reorderedActions);
+                },
+              );
+            },
+          ),
+
+          const SizedBox(height: AppTheme.paddingL),
+
+          // Sección de Acciones Rápidas de Inversiones
+          _buildSectionHeader(
+            context,
+            'Inversiones Rápidas',
+            Icons.trending_up,
+          ),
+          const SizedBox(height: AppTheme.paddingS),
+          Consumer<QuickInvestmentService>(
+            builder: (context, quickInvestmentService, _) {
+              return QuickInvestmentsRow(
+                investments: quickInvestmentService.activeQuickInvestments,
+                onInvestmentTap: (investment) => _handleQuickInvestment(context, investment),
+                onAddNew: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AddQuickInvestmentScreen(),
+                    ),
+                  );
+                },
+                onReorder: (reorderedInvestments) async {
+                  await quickInvestmentService.updateOrder(reorderedInvestments);
+                },
               );
             },
           ),
@@ -343,6 +463,28 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               const SizedBox(width: AppTheme.paddingM),
+              Expanded(
+                child: _buildQuickAccessButton(
+                  context,
+                  'Nuevo Ingreso',
+                  Icons.add_circle,
+                  AppTheme.successColor,
+                  () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AddIncomeScreen(),
+                      ),
+                    );
+                    await _loadData();
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppTheme.paddingM),
+          Row(
+            children: [
               Expanded(
                 child: _buildQuickAccessButton(
                   context,

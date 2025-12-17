@@ -4,7 +4,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'data/database.dart';
 import 'services/expense_service.dart';
 import 'services/investment_service.dart';
+import 'services/income_service.dart';
 import 'services/quick_action_service.dart';
+import 'services/quick_investment_service.dart';
 import 'services/gamification_service.dart';
 import 'services/category_service.dart';
 import 'core/theme/app_theme.dart';
@@ -52,8 +54,15 @@ class MyApp extends StatelessWidget {
           create: (_) => InvestmentService(database),
         ),
         ChangeNotifierProvider(
+          create: (_) => IncomeService(database),
+        ),
+        ChangeNotifierProvider(
           create: (_) => QuickActionService(database)
             ..initializeDefaultQuickActions(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => QuickInvestmentService(database)
+            ..initializeDefaultQuickInvestments(),
         ),
         ChangeNotifierProvider(
           create: (_) => GamificationService(database, prefs),

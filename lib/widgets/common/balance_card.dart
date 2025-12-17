@@ -9,6 +9,7 @@ import '../../core/theme/app_theme.dart';
 class BalanceCard extends StatelessWidget {
   final double totalExpenses;
   final double totalInvestments;
+  final double totalIncomes;
   final bool showDetails;
   final VoidCallback? onTap;
 
@@ -16,6 +17,7 @@ class BalanceCard extends StatelessWidget {
     super.key,
     required this.totalExpenses,
     required this.totalInvestments,
+    this.totalIncomes = 0.0,
     this.showDetails = true,
     this.onTap,
   });
@@ -27,7 +29,7 @@ class BalanceCard extends StatelessWidget {
       decimalDigits: 2,
     );
 
-    final balance = totalInvestments - totalExpenses;
+    final balance = totalInvestments + totalIncomes - totalExpenses;
 
     return GestureDetector(
       onTap: onTap,
@@ -88,20 +90,42 @@ class BalanceCard extends StatelessWidget {
               const SizedBox(height: AppTheme.paddingM),
 
               // Detalles
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Column(
                 children: [
-                  _DetailItem(
-                    icon: Icons.trending_up,
-                    label: 'Inversiones',
-                    value: currencyFormat.format(totalInvestments),
-                    color: Colors.green[700]!,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _DetailItem(
+                        icon: Icons.arrow_downward,
+                        label: 'Ingresos',
+                        value: currencyFormat.format(totalIncomes),
+                        color: Colors.green[700]!,
+                      ),
+                      _DetailItem(
+                        icon: Icons.arrow_upward,
+                        label: 'Gastos',
+                        value: currencyFormat.format(totalExpenses),
+                        color: Colors.red[700]!,
+                      ),
+                    ],
                   ),
-                  _DetailItem(
-                    icon: Icons.trending_down,
-                    label: 'Gastos',
-                    value: currencyFormat.format(totalExpenses),
-                    color: Colors.red[700]!,
+                  const SizedBox(height: AppTheme.paddingM),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _DetailItem(
+                        icon: Icons.trending_up,
+                        label: 'Inversiones',
+                        value: currencyFormat.format(totalInvestments),
+                        color: Colors.blue[700]!,
+                      ),
+                      _DetailItem(
+                        icon: Icons.account_balance_wallet,
+                        label: 'Balance',
+                        value: currencyFormat.format(balance),
+                        color: balance >= 0 ? Colors.green[700]! : Colors.red[700]!,
+                      ),
+                    ],
                   ),
                 ],
               ),

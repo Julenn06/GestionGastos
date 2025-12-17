@@ -2506,6 +2506,1180 @@ class CategoriesCompanion extends UpdateCompanion<Category> {
   }
 }
 
+class $QuickInvestmentsTable extends QuickInvestments
+    with TableInfo<$QuickInvestmentsTable, QuickInvestment> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $QuickInvestmentsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<double> amount = GeneratedColumn<double>(
+    'amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _linkedInvestmentIdMeta =
+      const VerificationMeta('linkedInvestmentId');
+  @override
+  late final GeneratedColumn<String> linkedInvestmentId =
+      GeneratedColumn<String>(
+        'linked_investment_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _investmentNameMeta = const VerificationMeta(
+    'investmentName',
+  );
+  @override
+  late final GeneratedColumn<String> investmentName = GeneratedColumn<String>(
+    'investment_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _platformMeta = const VerificationMeta(
+    'platform',
+  );
+  @override
+  late final GeneratedColumn<String> platform = GeneratedColumn<String>(
+    'platform',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _iconMeta = const VerificationMeta('icon');
+  @override
+  late final GeneratedColumn<String> icon = GeneratedColumn<String>(
+    'icon',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
+  @override
+  late final GeneratedColumn<String> color = GeneratedColumn<String>(
+    'color',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _orderMeta = const VerificationMeta('order');
+  @override
+  late final GeneratedColumn<int> order = GeneratedColumn<int>(
+    'order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _isActiveMeta = const VerificationMeta(
+    'isActive',
+  );
+  @override
+  late final GeneratedColumn<bool> isActive = GeneratedColumn<bool>(
+    'is_active',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_active" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    type,
+    amount,
+    linkedInvestmentId,
+    investmentName,
+    platform,
+    icon,
+    color,
+    order,
+    isActive,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'quick_investments';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<QuickInvestment> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('amount')) {
+      context.handle(
+        _amountMeta,
+        amount.isAcceptableOrUnknown(data['amount']!, _amountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMeta);
+    }
+    if (data.containsKey('linked_investment_id')) {
+      context.handle(
+        _linkedInvestmentIdMeta,
+        linkedInvestmentId.isAcceptableOrUnknown(
+          data['linked_investment_id']!,
+          _linkedInvestmentIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('investment_name')) {
+      context.handle(
+        _investmentNameMeta,
+        investmentName.isAcceptableOrUnknown(
+          data['investment_name']!,
+          _investmentNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_investmentNameMeta);
+    }
+    if (data.containsKey('platform')) {
+      context.handle(
+        _platformMeta,
+        platform.isAcceptableOrUnknown(data['platform']!, _platformMeta),
+      );
+    }
+    if (data.containsKey('icon')) {
+      context.handle(
+        _iconMeta,
+        icon.isAcceptableOrUnknown(data['icon']!, _iconMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_iconMeta);
+    }
+    if (data.containsKey('color')) {
+      context.handle(
+        _colorMeta,
+        color.isAcceptableOrUnknown(data['color']!, _colorMeta),
+      );
+    }
+    if (data.containsKey('order')) {
+      context.handle(
+        _orderMeta,
+        order.isAcceptableOrUnknown(data['order']!, _orderMeta),
+      );
+    }
+    if (data.containsKey('is_active')) {
+      context.handle(
+        _isActiveMeta,
+        isActive.isAcceptableOrUnknown(data['is_active']!, _isActiveMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  QuickInvestment map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return QuickInvestment(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+      amount: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}amount'],
+      )!,
+      linkedInvestmentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}linked_investment_id'],
+      ),
+      investmentName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}investment_name'],
+      )!,
+      platform: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}platform'],
+      ),
+      icon: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}icon'],
+      )!,
+      color: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}color'],
+      ),
+      order: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}order'],
+      )!,
+      isActive: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_active'],
+      )!,
+    );
+  }
+
+  @override
+  $QuickInvestmentsTable createAlias(String alias) {
+    return $QuickInvestmentsTable(attachedDatabase, alias);
+  }
+}
+
+class QuickInvestment extends DataClass implements Insertable<QuickInvestment> {
+  final String id;
+  final String name;
+  final String type;
+  final double amount;
+  final String? linkedInvestmentId;
+  final String investmentName;
+  final String? platform;
+  final String icon;
+  final String? color;
+  final int order;
+  final bool isActive;
+  const QuickInvestment({
+    required this.id,
+    required this.name,
+    required this.type,
+    required this.amount,
+    this.linkedInvestmentId,
+    required this.investmentName,
+    this.platform,
+    required this.icon,
+    this.color,
+    required this.order,
+    required this.isActive,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    map['type'] = Variable<String>(type);
+    map['amount'] = Variable<double>(amount);
+    if (!nullToAbsent || linkedInvestmentId != null) {
+      map['linked_investment_id'] = Variable<String>(linkedInvestmentId);
+    }
+    map['investment_name'] = Variable<String>(investmentName);
+    if (!nullToAbsent || platform != null) {
+      map['platform'] = Variable<String>(platform);
+    }
+    map['icon'] = Variable<String>(icon);
+    if (!nullToAbsent || color != null) {
+      map['color'] = Variable<String>(color);
+    }
+    map['order'] = Variable<int>(order);
+    map['is_active'] = Variable<bool>(isActive);
+    return map;
+  }
+
+  QuickInvestmentsCompanion toCompanion(bool nullToAbsent) {
+    return QuickInvestmentsCompanion(
+      id: Value(id),
+      name: Value(name),
+      type: Value(type),
+      amount: Value(amount),
+      linkedInvestmentId: linkedInvestmentId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(linkedInvestmentId),
+      investmentName: Value(investmentName),
+      platform: platform == null && nullToAbsent
+          ? const Value.absent()
+          : Value(platform),
+      icon: Value(icon),
+      color: color == null && nullToAbsent
+          ? const Value.absent()
+          : Value(color),
+      order: Value(order),
+      isActive: Value(isActive),
+    );
+  }
+
+  factory QuickInvestment.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return QuickInvestment(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      type: serializer.fromJson<String>(json['type']),
+      amount: serializer.fromJson<double>(json['amount']),
+      linkedInvestmentId: serializer.fromJson<String?>(
+        json['linkedInvestmentId'],
+      ),
+      investmentName: serializer.fromJson<String>(json['investmentName']),
+      platform: serializer.fromJson<String?>(json['platform']),
+      icon: serializer.fromJson<String>(json['icon']),
+      color: serializer.fromJson<String?>(json['color']),
+      order: serializer.fromJson<int>(json['order']),
+      isActive: serializer.fromJson<bool>(json['isActive']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'type': serializer.toJson<String>(type),
+      'amount': serializer.toJson<double>(amount),
+      'linkedInvestmentId': serializer.toJson<String?>(linkedInvestmentId),
+      'investmentName': serializer.toJson<String>(investmentName),
+      'platform': serializer.toJson<String?>(platform),
+      'icon': serializer.toJson<String>(icon),
+      'color': serializer.toJson<String?>(color),
+      'order': serializer.toJson<int>(order),
+      'isActive': serializer.toJson<bool>(isActive),
+    };
+  }
+
+  QuickInvestment copyWith({
+    String? id,
+    String? name,
+    String? type,
+    double? amount,
+    Value<String?> linkedInvestmentId = const Value.absent(),
+    String? investmentName,
+    Value<String?> platform = const Value.absent(),
+    String? icon,
+    Value<String?> color = const Value.absent(),
+    int? order,
+    bool? isActive,
+  }) => QuickInvestment(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    type: type ?? this.type,
+    amount: amount ?? this.amount,
+    linkedInvestmentId: linkedInvestmentId.present
+        ? linkedInvestmentId.value
+        : this.linkedInvestmentId,
+    investmentName: investmentName ?? this.investmentName,
+    platform: platform.present ? platform.value : this.platform,
+    icon: icon ?? this.icon,
+    color: color.present ? color.value : this.color,
+    order: order ?? this.order,
+    isActive: isActive ?? this.isActive,
+  );
+  QuickInvestment copyWithCompanion(QuickInvestmentsCompanion data) {
+    return QuickInvestment(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      type: data.type.present ? data.type.value : this.type,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      linkedInvestmentId: data.linkedInvestmentId.present
+          ? data.linkedInvestmentId.value
+          : this.linkedInvestmentId,
+      investmentName: data.investmentName.present
+          ? data.investmentName.value
+          : this.investmentName,
+      platform: data.platform.present ? data.platform.value : this.platform,
+      icon: data.icon.present ? data.icon.value : this.icon,
+      color: data.color.present ? data.color.value : this.color,
+      order: data.order.present ? data.order.value : this.order,
+      isActive: data.isActive.present ? data.isActive.value : this.isActive,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('QuickInvestment(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('type: $type, ')
+          ..write('amount: $amount, ')
+          ..write('linkedInvestmentId: $linkedInvestmentId, ')
+          ..write('investmentName: $investmentName, ')
+          ..write('platform: $platform, ')
+          ..write('icon: $icon, ')
+          ..write('color: $color, ')
+          ..write('order: $order, ')
+          ..write('isActive: $isActive')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    type,
+    amount,
+    linkedInvestmentId,
+    investmentName,
+    platform,
+    icon,
+    color,
+    order,
+    isActive,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is QuickInvestment &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.type == this.type &&
+          other.amount == this.amount &&
+          other.linkedInvestmentId == this.linkedInvestmentId &&
+          other.investmentName == this.investmentName &&
+          other.platform == this.platform &&
+          other.icon == this.icon &&
+          other.color == this.color &&
+          other.order == this.order &&
+          other.isActive == this.isActive);
+}
+
+class QuickInvestmentsCompanion extends UpdateCompanion<QuickInvestment> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String> type;
+  final Value<double> amount;
+  final Value<String?> linkedInvestmentId;
+  final Value<String> investmentName;
+  final Value<String?> platform;
+  final Value<String> icon;
+  final Value<String?> color;
+  final Value<int> order;
+  final Value<bool> isActive;
+  final Value<int> rowid;
+  const QuickInvestmentsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.type = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.linkedInvestmentId = const Value.absent(),
+    this.investmentName = const Value.absent(),
+    this.platform = const Value.absent(),
+    this.icon = const Value.absent(),
+    this.color = const Value.absent(),
+    this.order = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  QuickInvestmentsCompanion.insert({
+    required String id,
+    required String name,
+    required String type,
+    required double amount,
+    this.linkedInvestmentId = const Value.absent(),
+    required String investmentName,
+    this.platform = const Value.absent(),
+    required String icon,
+    this.color = const Value.absent(),
+    this.order = const Value.absent(),
+    this.isActive = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name),
+       type = Value(type),
+       amount = Value(amount),
+       investmentName = Value(investmentName),
+       icon = Value(icon);
+  static Insertable<QuickInvestment> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? type,
+    Expression<double>? amount,
+    Expression<String>? linkedInvestmentId,
+    Expression<String>? investmentName,
+    Expression<String>? platform,
+    Expression<String>? icon,
+    Expression<String>? color,
+    Expression<int>? order,
+    Expression<bool>? isActive,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (type != null) 'type': type,
+      if (amount != null) 'amount': amount,
+      if (linkedInvestmentId != null)
+        'linked_investment_id': linkedInvestmentId,
+      if (investmentName != null) 'investment_name': investmentName,
+      if (platform != null) 'platform': platform,
+      if (icon != null) 'icon': icon,
+      if (color != null) 'color': color,
+      if (order != null) 'order': order,
+      if (isActive != null) 'is_active': isActive,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  QuickInvestmentsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<String>? type,
+    Value<double>? amount,
+    Value<String?>? linkedInvestmentId,
+    Value<String>? investmentName,
+    Value<String?>? platform,
+    Value<String>? icon,
+    Value<String?>? color,
+    Value<int>? order,
+    Value<bool>? isActive,
+    Value<int>? rowid,
+  }) {
+    return QuickInvestmentsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      type: type ?? this.type,
+      amount: amount ?? this.amount,
+      linkedInvestmentId: linkedInvestmentId ?? this.linkedInvestmentId,
+      investmentName: investmentName ?? this.investmentName,
+      platform: platform ?? this.platform,
+      icon: icon ?? this.icon,
+      color: color ?? this.color,
+      order: order ?? this.order,
+      isActive: isActive ?? this.isActive,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (amount.present) {
+      map['amount'] = Variable<double>(amount.value);
+    }
+    if (linkedInvestmentId.present) {
+      map['linked_investment_id'] = Variable<String>(linkedInvestmentId.value);
+    }
+    if (investmentName.present) {
+      map['investment_name'] = Variable<String>(investmentName.value);
+    }
+    if (platform.present) {
+      map['platform'] = Variable<String>(platform.value);
+    }
+    if (icon.present) {
+      map['icon'] = Variable<String>(icon.value);
+    }
+    if (color.present) {
+      map['color'] = Variable<String>(color.value);
+    }
+    if (order.present) {
+      map['order'] = Variable<int>(order.value);
+    }
+    if (isActive.present) {
+      map['is_active'] = Variable<bool>(isActive.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('QuickInvestmentsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('type: $type, ')
+          ..write('amount: $amount, ')
+          ..write('linkedInvestmentId: $linkedInvestmentId, ')
+          ..write('investmentName: $investmentName, ')
+          ..write('platform: $platform, ')
+          ..write('icon: $icon, ')
+          ..write('color: $color, ')
+          ..write('order: $order, ')
+          ..write('isActive: $isActive, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $IncomesTable extends Incomes with TableInfo<$IncomesTable, Income> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $IncomesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<double> amount = GeneratedColumn<double>(
+    'amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _subcategoryMeta = const VerificationMeta(
+    'subcategory',
+  );
+  @override
+  late final GeneratedColumn<String> subcategory = GeneratedColumn<String>(
+    'subcategory',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+    'date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _iconMeta = const VerificationMeta('icon');
+  @override
+  late final GeneratedColumn<String> icon = GeneratedColumn<String>(
+    'icon',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isQuickActionMeta = const VerificationMeta(
+    'isQuickAction',
+  );
+  @override
+  late final GeneratedColumn<bool> isQuickAction = GeneratedColumn<bool>(
+    'is_quick_action',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_quick_action" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    amount,
+    category,
+    subcategory,
+    date,
+    note,
+    icon,
+    isQuickAction,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'incomes';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Income> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('amount')) {
+      context.handle(
+        _amountMeta,
+        amount.isAcceptableOrUnknown(data['amount']!, _amountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMeta);
+    }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryMeta);
+    }
+    if (data.containsKey('subcategory')) {
+      context.handle(
+        _subcategoryMeta,
+        subcategory.isAcceptableOrUnknown(
+          data['subcategory']!,
+          _subcategoryMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_subcategoryMeta);
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('icon')) {
+      context.handle(
+        _iconMeta,
+        icon.isAcceptableOrUnknown(data['icon']!, _iconMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_iconMeta);
+    }
+    if (data.containsKey('is_quick_action')) {
+      context.handle(
+        _isQuickActionMeta,
+        isQuickAction.isAcceptableOrUnknown(
+          data['is_quick_action']!,
+          _isQuickActionMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Income map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Income(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      amount: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}amount'],
+      )!,
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      )!,
+      subcategory: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}subcategory'],
+      )!,
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      icon: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}icon'],
+      )!,
+      isQuickAction: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_quick_action'],
+      )!,
+    );
+  }
+
+  @override
+  $IncomesTable createAlias(String alias) {
+    return $IncomesTable(attachedDatabase, alias);
+  }
+}
+
+class Income extends DataClass implements Insertable<Income> {
+  final String id;
+  final double amount;
+  final String category;
+  final String subcategory;
+  final DateTime date;
+  final String? note;
+  final String icon;
+  final bool isQuickAction;
+  const Income({
+    required this.id,
+    required this.amount,
+    required this.category,
+    required this.subcategory,
+    required this.date,
+    this.note,
+    required this.icon,
+    required this.isQuickAction,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['amount'] = Variable<double>(amount);
+    map['category'] = Variable<String>(category);
+    map['subcategory'] = Variable<String>(subcategory);
+    map['date'] = Variable<DateTime>(date);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    map['icon'] = Variable<String>(icon);
+    map['is_quick_action'] = Variable<bool>(isQuickAction);
+    return map;
+  }
+
+  IncomesCompanion toCompanion(bool nullToAbsent) {
+    return IncomesCompanion(
+      id: Value(id),
+      amount: Value(amount),
+      category: Value(category),
+      subcategory: Value(subcategory),
+      date: Value(date),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      icon: Value(icon),
+      isQuickAction: Value(isQuickAction),
+    );
+  }
+
+  factory Income.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Income(
+      id: serializer.fromJson<String>(json['id']),
+      amount: serializer.fromJson<double>(json['amount']),
+      category: serializer.fromJson<String>(json['category']),
+      subcategory: serializer.fromJson<String>(json['subcategory']),
+      date: serializer.fromJson<DateTime>(json['date']),
+      note: serializer.fromJson<String?>(json['note']),
+      icon: serializer.fromJson<String>(json['icon']),
+      isQuickAction: serializer.fromJson<bool>(json['isQuickAction']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'amount': serializer.toJson<double>(amount),
+      'category': serializer.toJson<String>(category),
+      'subcategory': serializer.toJson<String>(subcategory),
+      'date': serializer.toJson<DateTime>(date),
+      'note': serializer.toJson<String?>(note),
+      'icon': serializer.toJson<String>(icon),
+      'isQuickAction': serializer.toJson<bool>(isQuickAction),
+    };
+  }
+
+  Income copyWith({
+    String? id,
+    double? amount,
+    String? category,
+    String? subcategory,
+    DateTime? date,
+    Value<String?> note = const Value.absent(),
+    String? icon,
+    bool? isQuickAction,
+  }) => Income(
+    id: id ?? this.id,
+    amount: amount ?? this.amount,
+    category: category ?? this.category,
+    subcategory: subcategory ?? this.subcategory,
+    date: date ?? this.date,
+    note: note.present ? note.value : this.note,
+    icon: icon ?? this.icon,
+    isQuickAction: isQuickAction ?? this.isQuickAction,
+  );
+  Income copyWithCompanion(IncomesCompanion data) {
+    return Income(
+      id: data.id.present ? data.id.value : this.id,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      category: data.category.present ? data.category.value : this.category,
+      subcategory: data.subcategory.present
+          ? data.subcategory.value
+          : this.subcategory,
+      date: data.date.present ? data.date.value : this.date,
+      note: data.note.present ? data.note.value : this.note,
+      icon: data.icon.present ? data.icon.value : this.icon,
+      isQuickAction: data.isQuickAction.present
+          ? data.isQuickAction.value
+          : this.isQuickAction,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Income(')
+          ..write('id: $id, ')
+          ..write('amount: $amount, ')
+          ..write('category: $category, ')
+          ..write('subcategory: $subcategory, ')
+          ..write('date: $date, ')
+          ..write('note: $note, ')
+          ..write('icon: $icon, ')
+          ..write('isQuickAction: $isQuickAction')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    amount,
+    category,
+    subcategory,
+    date,
+    note,
+    icon,
+    isQuickAction,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Income &&
+          other.id == this.id &&
+          other.amount == this.amount &&
+          other.category == this.category &&
+          other.subcategory == this.subcategory &&
+          other.date == this.date &&
+          other.note == this.note &&
+          other.icon == this.icon &&
+          other.isQuickAction == this.isQuickAction);
+}
+
+class IncomesCompanion extends UpdateCompanion<Income> {
+  final Value<String> id;
+  final Value<double> amount;
+  final Value<String> category;
+  final Value<String> subcategory;
+  final Value<DateTime> date;
+  final Value<String?> note;
+  final Value<String> icon;
+  final Value<bool> isQuickAction;
+  final Value<int> rowid;
+  const IncomesCompanion({
+    this.id = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.category = const Value.absent(),
+    this.subcategory = const Value.absent(),
+    this.date = const Value.absent(),
+    this.note = const Value.absent(),
+    this.icon = const Value.absent(),
+    this.isQuickAction = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  IncomesCompanion.insert({
+    required String id,
+    required double amount,
+    required String category,
+    required String subcategory,
+    required DateTime date,
+    this.note = const Value.absent(),
+    required String icon,
+    this.isQuickAction = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       amount = Value(amount),
+       category = Value(category),
+       subcategory = Value(subcategory),
+       date = Value(date),
+       icon = Value(icon);
+  static Insertable<Income> custom({
+    Expression<String>? id,
+    Expression<double>? amount,
+    Expression<String>? category,
+    Expression<String>? subcategory,
+    Expression<DateTime>? date,
+    Expression<String>? note,
+    Expression<String>? icon,
+    Expression<bool>? isQuickAction,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (amount != null) 'amount': amount,
+      if (category != null) 'category': category,
+      if (subcategory != null) 'subcategory': subcategory,
+      if (date != null) 'date': date,
+      if (note != null) 'note': note,
+      if (icon != null) 'icon': icon,
+      if (isQuickAction != null) 'is_quick_action': isQuickAction,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  IncomesCompanion copyWith({
+    Value<String>? id,
+    Value<double>? amount,
+    Value<String>? category,
+    Value<String>? subcategory,
+    Value<DateTime>? date,
+    Value<String?>? note,
+    Value<String>? icon,
+    Value<bool>? isQuickAction,
+    Value<int>? rowid,
+  }) {
+    return IncomesCompanion(
+      id: id ?? this.id,
+      amount: amount ?? this.amount,
+      category: category ?? this.category,
+      subcategory: subcategory ?? this.subcategory,
+      date: date ?? this.date,
+      note: note ?? this.note,
+      icon: icon ?? this.icon,
+      isQuickAction: isQuickAction ?? this.isQuickAction,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (amount.present) {
+      map['amount'] = Variable<double>(amount.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (subcategory.present) {
+      map['subcategory'] = Variable<String>(subcategory.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (icon.present) {
+      map['icon'] = Variable<String>(icon.value);
+    }
+    if (isQuickAction.present) {
+      map['is_quick_action'] = Variable<bool>(isQuickAction.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('IncomesCompanion(')
+          ..write('id: $id, ')
+          ..write('amount: $amount, ')
+          ..write('category: $category, ')
+          ..write('subcategory: $subcategory, ')
+          ..write('date: $date, ')
+          ..write('note: $note, ')
+          ..write('icon: $icon, ')
+          ..write('isQuickAction: $isQuickAction, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2514,6 +3688,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $InvestmentsTable investments = $InvestmentsTable(this);
   late final $AchievementsTable achievements = $AchievementsTable(this);
   late final $CategoriesTable categories = $CategoriesTable(this);
+  late final $QuickInvestmentsTable quickInvestments = $QuickInvestmentsTable(
+    this,
+  );
+  late final $IncomesTable incomes = $IncomesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2524,6 +3702,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     investments,
     achievements,
     categories,
+    quickInvestments,
+    incomes,
   ];
 }
 
@@ -3799,6 +4979,585 @@ typedef $$CategoriesTableProcessedTableManager =
       Category,
       PrefetchHooks Function()
     >;
+typedef $$QuickInvestmentsTableCreateCompanionBuilder =
+    QuickInvestmentsCompanion Function({
+      required String id,
+      required String name,
+      required String type,
+      required double amount,
+      Value<String?> linkedInvestmentId,
+      required String investmentName,
+      Value<String?> platform,
+      required String icon,
+      Value<String?> color,
+      Value<int> order,
+      Value<bool> isActive,
+      Value<int> rowid,
+    });
+typedef $$QuickInvestmentsTableUpdateCompanionBuilder =
+    QuickInvestmentsCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<String> type,
+      Value<double> amount,
+      Value<String?> linkedInvestmentId,
+      Value<String> investmentName,
+      Value<String?> platform,
+      Value<String> icon,
+      Value<String?> color,
+      Value<int> order,
+      Value<bool> isActive,
+      Value<int> rowid,
+    });
+
+class $$QuickInvestmentsTableFilterComposer
+    extends Composer<_$AppDatabase, $QuickInvestmentsTable> {
+  $$QuickInvestmentsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get linkedInvestmentId => $composableBuilder(
+    column: $table.linkedInvestmentId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get investmentName => $composableBuilder(
+    column: $table.investmentName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get platform => $composableBuilder(
+    column: $table.platform,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get icon => $composableBuilder(
+    column: $table.icon,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get order => $composableBuilder(
+    column: $table.order,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$QuickInvestmentsTableOrderingComposer
+    extends Composer<_$AppDatabase, $QuickInvestmentsTable> {
+  $$QuickInvestmentsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get linkedInvestmentId => $composableBuilder(
+    column: $table.linkedInvestmentId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get investmentName => $composableBuilder(
+    column: $table.investmentName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get platform => $composableBuilder(
+    column: $table.platform,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get icon => $composableBuilder(
+    column: $table.icon,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get color => $composableBuilder(
+    column: $table.color,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get order => $composableBuilder(
+    column: $table.order,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isActive => $composableBuilder(
+    column: $table.isActive,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$QuickInvestmentsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $QuickInvestmentsTable> {
+  $$QuickInvestmentsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<double> get amount =>
+      $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<String> get linkedInvestmentId => $composableBuilder(
+    column: $table.linkedInvestmentId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get investmentName => $composableBuilder(
+    column: $table.investmentName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get platform =>
+      $composableBuilder(column: $table.platform, builder: (column) => column);
+
+  GeneratedColumn<String> get icon =>
+      $composableBuilder(column: $table.icon, builder: (column) => column);
+
+  GeneratedColumn<String> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
+
+  GeneratedColumn<int> get order =>
+      $composableBuilder(column: $table.order, builder: (column) => column);
+
+  GeneratedColumn<bool> get isActive =>
+      $composableBuilder(column: $table.isActive, builder: (column) => column);
+}
+
+class $$QuickInvestmentsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $QuickInvestmentsTable,
+          QuickInvestment,
+          $$QuickInvestmentsTableFilterComposer,
+          $$QuickInvestmentsTableOrderingComposer,
+          $$QuickInvestmentsTableAnnotationComposer,
+          $$QuickInvestmentsTableCreateCompanionBuilder,
+          $$QuickInvestmentsTableUpdateCompanionBuilder,
+          (
+            QuickInvestment,
+            BaseReferences<
+              _$AppDatabase,
+              $QuickInvestmentsTable,
+              QuickInvestment
+            >,
+          ),
+          QuickInvestment,
+          PrefetchHooks Function()
+        > {
+  $$QuickInvestmentsTableTableManager(
+    _$AppDatabase db,
+    $QuickInvestmentsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$QuickInvestmentsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$QuickInvestmentsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$QuickInvestmentsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<double> amount = const Value.absent(),
+                Value<String?> linkedInvestmentId = const Value.absent(),
+                Value<String> investmentName = const Value.absent(),
+                Value<String?> platform = const Value.absent(),
+                Value<String> icon = const Value.absent(),
+                Value<String?> color = const Value.absent(),
+                Value<int> order = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => QuickInvestmentsCompanion(
+                id: id,
+                name: name,
+                type: type,
+                amount: amount,
+                linkedInvestmentId: linkedInvestmentId,
+                investmentName: investmentName,
+                platform: platform,
+                icon: icon,
+                color: color,
+                order: order,
+                isActive: isActive,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String name,
+                required String type,
+                required double amount,
+                Value<String?> linkedInvestmentId = const Value.absent(),
+                required String investmentName,
+                Value<String?> platform = const Value.absent(),
+                required String icon,
+                Value<String?> color = const Value.absent(),
+                Value<int> order = const Value.absent(),
+                Value<bool> isActive = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => QuickInvestmentsCompanion.insert(
+                id: id,
+                name: name,
+                type: type,
+                amount: amount,
+                linkedInvestmentId: linkedInvestmentId,
+                investmentName: investmentName,
+                platform: platform,
+                icon: icon,
+                color: color,
+                order: order,
+                isActive: isActive,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$QuickInvestmentsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $QuickInvestmentsTable,
+      QuickInvestment,
+      $$QuickInvestmentsTableFilterComposer,
+      $$QuickInvestmentsTableOrderingComposer,
+      $$QuickInvestmentsTableAnnotationComposer,
+      $$QuickInvestmentsTableCreateCompanionBuilder,
+      $$QuickInvestmentsTableUpdateCompanionBuilder,
+      (
+        QuickInvestment,
+        BaseReferences<_$AppDatabase, $QuickInvestmentsTable, QuickInvestment>,
+      ),
+      QuickInvestment,
+      PrefetchHooks Function()
+    >;
+typedef $$IncomesTableCreateCompanionBuilder =
+    IncomesCompanion Function({
+      required String id,
+      required double amount,
+      required String category,
+      required String subcategory,
+      required DateTime date,
+      Value<String?> note,
+      required String icon,
+      Value<bool> isQuickAction,
+      Value<int> rowid,
+    });
+typedef $$IncomesTableUpdateCompanionBuilder =
+    IncomesCompanion Function({
+      Value<String> id,
+      Value<double> amount,
+      Value<String> category,
+      Value<String> subcategory,
+      Value<DateTime> date,
+      Value<String?> note,
+      Value<String> icon,
+      Value<bool> isQuickAction,
+      Value<int> rowid,
+    });
+
+class $$IncomesTableFilterComposer
+    extends Composer<_$AppDatabase, $IncomesTable> {
+  $$IncomesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get subcategory => $composableBuilder(
+    column: $table.subcategory,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get icon => $composableBuilder(
+    column: $table.icon,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isQuickAction => $composableBuilder(
+    column: $table.isQuickAction,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$IncomesTableOrderingComposer
+    extends Composer<_$AppDatabase, $IncomesTable> {
+  $$IncomesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get subcategory => $composableBuilder(
+    column: $table.subcategory,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get icon => $composableBuilder(
+    column: $table.icon,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isQuickAction => $composableBuilder(
+    column: $table.isQuickAction,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$IncomesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $IncomesTable> {
+  $$IncomesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<double> get amount =>
+      $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<String> get subcategory => $composableBuilder(
+    column: $table.subcategory,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<String> get icon =>
+      $composableBuilder(column: $table.icon, builder: (column) => column);
+
+  GeneratedColumn<bool> get isQuickAction => $composableBuilder(
+    column: $table.isQuickAction,
+    builder: (column) => column,
+  );
+}
+
+class $$IncomesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $IncomesTable,
+          Income,
+          $$IncomesTableFilterComposer,
+          $$IncomesTableOrderingComposer,
+          $$IncomesTableAnnotationComposer,
+          $$IncomesTableCreateCompanionBuilder,
+          $$IncomesTableUpdateCompanionBuilder,
+          (Income, BaseReferences<_$AppDatabase, $IncomesTable, Income>),
+          Income,
+          PrefetchHooks Function()
+        > {
+  $$IncomesTableTableManager(_$AppDatabase db, $IncomesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$IncomesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$IncomesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$IncomesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<double> amount = const Value.absent(),
+                Value<String> category = const Value.absent(),
+                Value<String> subcategory = const Value.absent(),
+                Value<DateTime> date = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<String> icon = const Value.absent(),
+                Value<bool> isQuickAction = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => IncomesCompanion(
+                id: id,
+                amount: amount,
+                category: category,
+                subcategory: subcategory,
+                date: date,
+                note: note,
+                icon: icon,
+                isQuickAction: isQuickAction,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required double amount,
+                required String category,
+                required String subcategory,
+                required DateTime date,
+                Value<String?> note = const Value.absent(),
+                required String icon,
+                Value<bool> isQuickAction = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => IncomesCompanion.insert(
+                id: id,
+                amount: amount,
+                category: category,
+                subcategory: subcategory,
+                date: date,
+                note: note,
+                icon: icon,
+                isQuickAction: isQuickAction,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$IncomesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $IncomesTable,
+      Income,
+      $$IncomesTableFilterComposer,
+      $$IncomesTableOrderingComposer,
+      $$IncomesTableAnnotationComposer,
+      $$IncomesTableCreateCompanionBuilder,
+      $$IncomesTableUpdateCompanionBuilder,
+      (Income, BaseReferences<_$AppDatabase, $IncomesTable, Income>),
+      Income,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3813,4 +5572,8 @@ class $AppDatabaseManager {
       $$AchievementsTableTableManager(_db, _db.achievements);
   $$CategoriesTableTableManager get categories =>
       $$CategoriesTableTableManager(_db, _db.categories);
+  $$QuickInvestmentsTableTableManager get quickInvestments =>
+      $$QuickInvestmentsTableTableManager(_db, _db.quickInvestments);
+  $$IncomesTableTableManager get incomes =>
+      $$IncomesTableTableManager(_db, _db.incomes);
 }

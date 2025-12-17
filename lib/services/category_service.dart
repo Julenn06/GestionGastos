@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data/database.dart';
 import '../core/utils/log_service.dart';
-import 'package:drift/drift.dart' as drift;
 
 /// Servicio para gestionar categorías personalizadas
 /// 
@@ -55,94 +54,6 @@ class CategoryService extends ChangeNotifier {
     } catch (e) {
       LogService.error('Error al obtener categorías de ingresos', e);
       return [];
-    }
-  }
-
-  /// Crea una nueva categoría
-  Future<bool> createCategory({
-    required String name,
-    required String icon,
-    required String color,
-    required String type,
-  }) async {
-    try {
-      final id = 'cat_${DateTime.now().millisecondsSinceEpoch}';
-      
-      final category = CategoriesCompanion.insert(
-        id: id,
-        name: name,
-        icon: icon,
-        color: color,
-        type: type,
-        isDefault: const drift.Value(false),
-        createdAt: DateTime.now(),
-      );
-
-      await _database.insertCategory(category);
-      await loadCategories();
-      
-      LogService.info('Categoría creada: $name');
-      return true;
-    } catch (e) {
-      LogService.error('Error al crear categoría', e);
-      return false;
-    }
-  }
-
-  /// Actualiza una categoría existente
-  Future<bool> updateCategory(Category category) async {
-    try {
-      if (category.isDefault) {
-        LogService.warning('No se pueden editar categorías predeterminadas');
-        return false;
-      }
-
-      final success = await _database.updateCategory(category);
-      if (success) {
-        await loadCategories();
-        LogService.info('Categoría actualizada: ${category.name}');
-      }
-      
-      return success;
-    } catch (e) {
-      LogService.error('Error al actualizar categoría', e);
-      return false;
-    }
-  }
-
-  /// Elimina una categoría
-  Future<bool> deleteCategory(String id) async {
-    try {
-      final category = await _database.getCategoryById(id);
-      
-      if (category == null) {
-        LogService.warning('Categoría no encontrada: $id');
-        return false;
-      }
-
-      if (category.isDefault) {
-        LogService.warning('No se pueden eliminar categorías predeterminadas');
-        return false;
-      }
-
-      // Verificar si tiene gastos asociados
-      final hasExpenses = await _database.categoryHasExpenses(category.name);
-      if (hasExpenses) {
-        LogService.warning('No se puede eliminar categoría con gastos asociados');
-        return false;
-      }
-
-      final result = await _database.deleteCategory(id);
-      if (result > 0) {
-        await loadCategories();
-        LogService.info('Categoría eliminada: ${category.name}');
-        return true;
-      }
-      
-      return false;
-    } catch (e) {
-      LogService.error('Error al eliminar categoría', e);
-      return false;
     }
   }
 
