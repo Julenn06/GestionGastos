@@ -142,7 +142,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration {
@@ -168,6 +168,10 @@ class AppDatabase extends _$AppDatabase {
         if (from < 5) {
           // Versión 5: Agregar índices para optimizar rendimiento
           await _createIndexes();
+        }
+        if (from < 6) {
+          // Versión 6: Crear tabla de acciones rápidas si no existe
+          await m.createTable(quickActions);
         }
       },
     );

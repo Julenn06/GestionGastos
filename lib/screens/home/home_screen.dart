@@ -20,7 +20,7 @@ import '../statistics/statistics_screen.dart';
 import '../settings/settings_screen.dart';
 
 /// Pantalla principal de la aplicación
-/// 
+///
 /// Muestra el balance total, resumen de gastos del mes,
 /// acciones rápidas y acceso a todas las funcionalidades principales.
 class HomeScreen extends StatefulWidget {
@@ -50,24 +50,24 @@ class _HomeScreenState extends State<HomeScreen> {
     final expenseService = context.read<ExpenseService>();
     final incomeService = context.read<IncomeService>();
     final investmentService = context.read<InvestmentService>();
-    
+
     bool shouldReload = false;
-    
+
     if (expenseService.expenseCount != _lastExpenseCount) {
       _lastExpenseCount = expenseService.expenseCount;
       shouldReload = true;
     }
-    
+
     if (incomeService.incomes.length != _lastIncomeCount) {
       _lastIncomeCount = incomeService.incomes.length;
       shouldReload = true;
     }
-    
+
     if (investmentService.investments.length != _lastInvestmentCount) {
       _lastInvestmentCount = investmentService.investments.length;
       shouldReload = true;
     }
-    
+
     if (shouldReload && mounted) {
       _loadData();
     }
@@ -75,6 +75,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadData() async {
     _checkForDataChanges();
+    if (!mounted) return;
+
     final expenseService = context.read<ExpenseService>();
     final investmentService = context.read<InvestmentService>();
     final incomeService = context.read<IncomeService>();
@@ -83,9 +85,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final amountInvested = await investmentService.getTotalInvested();
     final currentValue = await investmentService.getTotalCurrentValue();
     final totalIncomes = await incomeService.getAllTimeTotal();
-    
-    // Actualizar precios automáticamente al cargar
-    _updateInvestmentPricesInBackground();
+
+    if (!mounted) return;
 
     setState(() {
       _monthlyExpenses = monthly;
@@ -93,8 +94,11 @@ class _HomeScreenState extends State<HomeScreen> {
       _totalCurrentValue = currentValue;
       _totalIncomes = totalIncomes;
     });
+
+    // Actualizar precios en segundo plano después del setState
+    _updateInvestmentPricesInBackground();
   }
-  
+
   /// Actualiza los precios de las inversiones en segundo plano
   Future<void> _updateInvestmentPricesInBackground() async {
     try {
@@ -128,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (success) {
       // Actualizar racha
       await gamificationService.updateStreak();
-      
+
       // Verificar logros
       await gamificationService.checkExpenseAchievements(
         expenseService.expenseCount,
@@ -153,9 +157,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Si está vinculada a una inversión existente, actualizarla
     if (investment.linkedInvestmentId != null) {
-      final existingInvestment = investmentService.investments
-          .firstWhere((inv) => inv.id == investment.linkedInvestmentId);
-      
+      final existingInvestment = investmentService.investments.firstWhere(
+        (inv) => inv.id == investment.linkedInvestmentId,
+      );
+
       // Solo actualizar el monto invertido, no el valor actual
       final success = await investmentService.updateInvestment(
         existingInvestment.copyWith(
@@ -166,13 +171,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // Intentar actualizar el precio desde la API
       if (success) {
-        final apiSuccess = await investmentService.updatePriceFromApi(investment.linkedInvestmentId);
-        
+        final apiSuccess = await investmentService.updatePriceFromApi(
+          investment.linkedInvestmentId,
+        );
+
         // Si la API no funciona (activo sin API), actualizar manualmente
         if (!apiSuccess) {
           await investmentService.updateInvestment(
             existingInvestment.copyWith(
-              amountInvested: existingInvestment.amountInvested + investment.amount,
+              amountInvested:
+                  existingInvestment.amountInvested + investment.amount,
               currentValue: existingInvestment.currentValue + investment.amount,
               lastUpdate: DateTime.now(),
             ),
@@ -187,7 +195,8 @@ class _HomeScreenState extends State<HomeScreen> {
             // ignore: use_build_context_synchronously
             context,
             title: 'Inversión actualizada',
-            subtitle: '+${investment.amount.toStringAsFixed(2)}€ en ${investment.investmentName}',
+            subtitle:
+                '+${investment.amount.toStringAsFixed(2)}€ en ${investment.investmentName}',
             icon: Icons.trending_up,
           );
         }
@@ -212,7 +221,7 @@ class _HomeScreenState extends State<HomeScreen> {
         final newInvestment = investmentService.investments
             .where((inv) => inv.name == investment.investmentName)
             .reduce((a, b) => a.lastUpdate.isAfter(b.lastUpdate) ? a : b);
-        
+
         // Si la API falla, el valor ya está establecido correctamente
         await investmentService.updatePriceFromApi(newInvestment.id);
       }
@@ -224,7 +233,8 @@ class _HomeScreenState extends State<HomeScreen> {
             // ignore: use_build_context_synchronously
             context,
             title: 'Inversión registrada',
-            subtitle: '${investment.amount.toStringAsFixed(2)}€ en ${investment.investmentName}',
+            subtitle:
+                '${investment.amount.toStringAsFixed(2)}€ en ${investment.investmentName}',
             icon: Icons.trending_up,
           );
         }
@@ -266,9 +276,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           const SizedBox(width: 4),
                           Text(
                             '${gamificationService.currentStreak}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
+                            style: Theme.of(context).textTheme.titleSmall
                                 ?.copyWith(
                                   color: AppTheme.primaryColor,
                                   fontWeight: FontWeight.bold,
@@ -285,26 +293,17 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: screens,
-      ),
+      body: IndexedStack(index: _selectedIndex, children: screens),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Inicio',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
           BottomNavigationBarItem(
             icon: Icon(Icons.bar_chart),
             label: 'Estadísticas',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Ajustes',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Ajustes'),
         ],
       ),
     );
@@ -317,11 +316,13 @@ class _HomeScreenState extends State<HomeScreen> {
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
           // Balance Card
-          BalanceCard(
-            totalExpenses: _monthlyExpenses,
-            totalInvestmentsInvested: _totalInvested,
-            totalInvestmentsCurrent: _totalCurrentValue,
-            totalIncomes: _totalIncomes,
+          RepaintBoundary(
+            child: BalanceCard(
+              totalExpenses: _monthlyExpenses,
+              totalInvestmentsInvested: _totalInvested,
+              totalInvestmentsCurrent: _totalCurrentValue,
+              totalIncomes: _totalIncomes,
+            ),
           ),
 
           const SizedBox(height: AppTheme.paddingM),
@@ -329,76 +330,103 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: AppTheme.paddingM),
 
           // Sección de Acciones Rápidas
-          _buildSectionHeader(
-            context,
-            'Acciones Rápidas',
-            Icons.flash_on,
-          ),
-          const SizedBox(height: AppTheme.paddingS),
-          Consumer<QuickActionService>(
-            builder: (context, quickActionService, _) {
-              return QuickActionsRow(
-                actions: quickActionService.activeQuickActions,
-                onActionTap: (action) => _handleQuickAction(context, action),
-                onAddNew: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AddQuickActionScreen(),
-                    ),
-                  );
-                },
-                onReorder: (reorderedActions) async {
-                  await quickActionService.updateOrder(reorderedActions);
-                },
-              );
-            },
+          RepaintBoundary(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSectionHeader(
+                  context,
+                  'Acciones Rápidas',
+                  Icons.flash_on,
+                ),
+                const SizedBox(height: AppTheme.paddingS),
+                Consumer<QuickActionService>(
+                  builder: (context, quickActionService, _) {
+                    return QuickActionsRow(
+                      actions: quickActionService.activeQuickActions,
+                      onActionTap: (action) =>
+                          _handleQuickAction(context, action),
+                      onAddNew: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AddQuickActionScreen(),
+                          ),
+                        );
+                      },
+                      onReorder: (reorderedActions) async {
+                        await quickActionService.updateOrder(reorderedActions);
+                      },
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
 
           const SizedBox(height: AppTheme.paddingL),
 
           // Sección de Acciones Rápidas de Inversiones
-          _buildSectionHeader(
-            context,
-            'Inversiones Rápidas',
-            Icons.trending_up,
-          ),
-          const SizedBox(height: AppTheme.paddingS),
-          Consumer<QuickInvestmentService>(
-            builder: (context, quickInvestmentService, _) {
-              return QuickInvestmentsRow(
-                investments: quickInvestmentService.activeQuickInvestments,
-                onInvestmentTap: (investment) => _handleQuickInvestment(context, investment),
-                onAddNew: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AddQuickInvestmentScreen(),
-                    ),
-                  );
-                },
-                onReorder: (reorderedInvestments) async {
-                  await quickInvestmentService.updateOrder(reorderedInvestments);
-                },
-              );
-            },
+          RepaintBoundary(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSectionHeader(
+                  context,
+                  'Inversiones Rápidas',
+                  Icons.trending_up,
+                ),
+                const SizedBox(height: AppTheme.paddingS),
+                Consumer<QuickInvestmentService>(
+                  builder: (context, quickInvestmentService, _) {
+                    return QuickInvestmentsRow(
+                      investments:
+                          quickInvestmentService.activeQuickInvestments,
+                      onInvestmentTap: (investment) =>
+                          _handleQuickInvestment(context, investment),
+                      onAddNew: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const AddQuickInvestmentScreen(),
+                          ),
+                        );
+                      },
+                      onReorder: (reorderedInvestments) async {
+                        await quickInvestmentService.updateOrder(
+                          reorderedInvestments,
+                        );
+                      },
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
 
           const SizedBox(height: AppTheme.paddingL),
 
           // Resumen del Mes
-          _buildSectionHeader(
-            context,
-            'Resumen del Mes',
-            Icons.calendar_today,
+          RepaintBoundary(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSectionHeader(
+                  context,
+                  'Resumen del Mes',
+                  Icons.calendar_today,
+                ),
+                const SizedBox(height: AppTheme.paddingS),
+                _buildMonthSummary(),
+              ],
+            ),
           ),
-          const SizedBox(height: AppTheme.paddingS),
-          _buildMonthSummary(),
 
           const SizedBox(height: AppTheme.paddingL),
 
           // Accesos Rápidos
-          _buildQuickAccessSection(),
+          RepaintBoundary(child: _buildQuickAccessSection()),
 
           const SizedBox(height: AppTheme.paddingXL),
         ],
@@ -406,7 +434,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title, IconData icon) {
+  Widget _buildSectionHeader(
+    BuildContext context,
+    String title,
+    IconData icon,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppTheme.paddingM),
       child: Row(
@@ -415,9 +447,9 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(width: AppTheme.paddingS),
           Text(
             title,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -465,18 +497,15 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Icon(icon, color: color, size: 20),
             const SizedBox(width: AppTheme.paddingS),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
+            Text(label, style: Theme.of(context).textTheme.bodyLarge),
           ],
         ),
         Text(
           value,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: color,
-                fontWeight: FontWeight.bold,
-              ),
+            color: color,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ],
     );
@@ -490,9 +519,9 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Text(
             'Accesos Rápidos',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: AppTheme.paddingM),
           Row(
@@ -578,10 +607,7 @@ class _HomeScreenState extends State<HomeScreen> {
           decoration: BoxDecoration(
             color: AppTheme.cardDark,
             borderRadius: BorderRadius.circular(AppTheme.radiusM),
-            border: Border.all(
-              color: color.withValues(alpha: 0.3),
-              width: 2,
-            ),
+            border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
           ),
           child: Column(
             children: [
@@ -589,9 +615,9 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: AppTheme.paddingS),
               Text(
                 label,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                 textAlign: TextAlign.center,
               ),
             ],

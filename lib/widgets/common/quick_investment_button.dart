@@ -3,7 +3,7 @@ import '../../models/quick_investment.dart';
 import '../../core/theme/app_theme.dart';
 
 /// Widget para un botón de acción rápida de inversión
-/// 
+///
 /// Muestra un botón elegante y táctil para una acción rápida predefinida
 /// que permite actualizar inversiones recurrentes con un solo toque.
 class QuickInvestmentButton extends StatelessWidget {
@@ -41,10 +41,7 @@ class QuickInvestmentButton extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppTheme.cardDark,
               borderRadius: BorderRadius.circular(AppTheme.radiusM),
-              border: Border.all(
-                color: color.withValues(alpha: 0.3),
-                width: 2,
-              ),
+              border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
               boxShadow: [
                 BoxShadow(
                   color: color.withValues(alpha: 0.1),
@@ -78,9 +75,9 @@ class QuickInvestmentButton extends StatelessWidget {
                 Text(
                   investment.name,
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 11,
-                      ),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
@@ -91,10 +88,10 @@ class QuickInvestmentButton extends StatelessWidget {
                 Text(
                   '+${investment.amount.toStringAsFixed(0)}€',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: color,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 11,
-                      ),
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                  ),
                 ),
               ],
             ),
@@ -147,12 +144,12 @@ class _QuickInvestmentsRowState extends State<QuickInvestmentsRow> {
       if (newIndex > maxIndex) {
         newIndex = maxIndex;
       }
-      
+
       if (newIndex > oldIndex) newIndex--;
       final item = _currentInvestments.removeAt(oldIndex);
       _currentInvestments.insert(newIndex, item);
     });
-    
+
     // Guardar automáticamente después de soltar
     Future.delayed(const Duration(milliseconds: 100), () {
       if (widget.onReorder != null && mounted) {
@@ -164,7 +161,7 @@ class _QuickInvestmentsRowState extends State<QuickInvestmentsRow> {
   @override
   Widget build(BuildContext context) {
     final investmentCount = _currentInvestments.length;
-    
+
     return SizedBox(
       height: 120,
       child: ReorderableListView.builder(
@@ -208,9 +205,7 @@ class _QuickInvestmentsRowState extends State<QuickInvestmentsRow> {
             return Padding(
               key: const ValueKey('add_button'),
               padding: const EdgeInsets.only(right: AppTheme.paddingS),
-              child: IgnorePointer(
-                child: _AddQuickInvestmentButton(onTap: widget.onAddNew),
-              ),
+              child: _AddQuickInvestmentButton(onTap: widget.onAddNew),
             );
           }
 
@@ -271,16 +266,16 @@ class _AddQuickInvestmentButton extends StatelessWidget {
             Text(
               'Nueva',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppTheme.secondaryColor,
-                    fontWeight: FontWeight.bold,
-                  ),
+                color: AppTheme.secondaryColor,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             Text(
               'Inversión',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppTheme.secondaryColor,
-                    fontWeight: FontWeight.bold,
-                  ),
+                color: AppTheme.secondaryColor,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),

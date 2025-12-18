@@ -2,12 +2,10 @@ import 'dart:io';
 import 'package:csv/csv.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import '../models/expense.dart';
-import '../models/investment.dart';
 import '../core/utils/log_service.dart';
 
 /// Servicio de exportación de datos
@@ -56,52 +54,7 @@ class ExportService {
     }
   }
 
-  /// Exporta inversiones a formato CSV
-  Future<String?> exportInvestmentsToCsv(List<Investment> investments) async {
-    try {
-      // Crear filas de datos
-      List<List<dynamic>> rows = [
-        [
-          'Nombre',
-          'Tipo',
-          'Plataforma',
-          'Fecha Inversión',
-          'Monto Invertido',
-          'Valor Actual',
-          'Ganancia/Pérdida',
-          'Rendimiento %',
-        ],
-      ];
 
-      for (final investment in investments) {
-        rows.add([
-          investment.name,
-          investment.type,
-          investment.platform ?? '',
-          _dateFormat.format(investment.dateInvested),
-          investment.amountInvested.toStringAsFixed(2),
-          investment.currentValue.toStringAsFixed(2),
-          investment.profitLoss.toStringAsFixed(2),
-          investment.profitLossPercentage.toStringAsFixed(2),
-        ]);
-      }
-
-      // Convertir a CSV
-      String csv = const ListToCsvConverter().convert(rows);
-
-      // Guardar archivo
-      final directory = await getApplicationDocumentsDirectory();
-      final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-      final filePath = '${directory.path}/inversiones_$timestamp.csv';
-      final file = File(filePath);
-      await file.writeAsString(csv);
-
-      return filePath;
-    } catch (e) {
-      LogService.error('Error al exportar inversiones a CSV', e, null, 'ExportService');
-      return null;
-    }
-  }
 
   // ============ Exportación PDF ============
 
@@ -211,96 +164,7 @@ class ExportService {
     }
   }
 
-  /// Exporta inversiones a formato PDF
-  Future<String?> exportInvestmentsToPdf(
-    List<Investment> investments,
-    double totalInvested,
-    double totalCurrent,
-    double totalProfitLoss,
-  ) async {
-    try {
-      final pdf = pw.Document();
 
-      pdf.addPage(
-        pw.MultiPage(
-          pageFormat: PdfPageFormat.a4,
-          build: (pw.Context context) {
-            return [
-              // Encabezado
-              pw.Header(
-                level: 0,
-                child: pw.Text(
-                  'Reporte de Inversiones',
-                  style: pw.TextStyle(
-                    fontSize: 24,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-              ),
-              pw.SizedBox(height: 20),
-
-              // Resumen general
-              pw.Text(
-                'Total Invertido: ${_currencyFormat.format(totalInvested)}',
-                style: const pw.TextStyle(fontSize: 12),
-              ),
-              pw.Text(
-                'Valor Actual: ${_currencyFormat.format(totalCurrent)}',
-                style: const pw.TextStyle(fontSize: 12),
-              ),
-              pw.Text(
-                'Ganancia/Pérdida: ${_currencyFormat.format(totalProfitLoss)}',
-                style: pw.TextStyle(
-                  fontSize: 14,
-                  fontWeight: pw.FontWeight.bold,
-                  color: totalProfitLoss >= 0 ? PdfColors.green : PdfColors.red,
-                ),
-              ),
-              pw.SizedBox(height: 20),
-
-              // Lista de inversiones
-              pw.Header(
-                level: 1,
-                child: pw.Text('Detalle de Inversiones'),
-              ),
-              pw.TableHelper.fromTextArray(
-                headers: [
-                  'Nombre',
-                  'Tipo',
-                  'Invertido',
-                  'Actual',
-                  'Rendimiento %',
-                ],
-                data: investments.map((investment) {
-                  return [
-                    investment.name,
-                    investment.type,
-                    _currencyFormat.format(investment.amountInvested),
-                    _currencyFormat.format(investment.currentValue),
-                    '${investment.profitLossPercentage.toStringAsFixed(2)}%',
-                  ];
-                }).toList(),
-                headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                cellHeight: 30,
-              ),
-            ];
-          },
-        ),
-      );
-
-      // Guardar archivo
-      final directory = await getApplicationDocumentsDirectory();
-      final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-      final filePath = '${directory.path}/reporte_inversiones_$timestamp.pdf';
-      final file = File(filePath);
-      await file.writeAsBytes(await pdf.save());
-
-      return filePath;
-    } catch (e) {
-      LogService.error('Error al exportar inversiones a PDF', e, null, 'ExportService');
-      return null;
-    }
-  }
 
   // ============ Compartir Archivos ============
 
@@ -314,14 +178,5 @@ class ExportService {
     }
   }
 
-  /// Imprime un PDF
-  Future<void> printPdf(String filePath) async {
-    try {
-      final file = File(filePath);
-      final bytes = await file.readAsBytes();
-      await Printing.layoutPdf(onLayout: (_) async => bytes);
-    } catch (e) {
-      LogService.error('Error al imprimir PDF', e, null, 'ExportService');
-    }
-  }
+
 }

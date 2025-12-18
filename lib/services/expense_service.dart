@@ -5,7 +5,7 @@ import '../models/expense.dart' as model;
 import 'package:drift/drift.dart' as drift;
 
 /// Servicio de gestión de gastos
-/// 
+///
 /// Proporciona la lógica de negocio para todas las operaciones relacionadas
 /// con gastos, incluyendo CRUD, cálculos y estadísticas.
 class ExpenseService extends ChangeNotifier {
@@ -22,7 +22,7 @@ class ExpenseService extends ChangeNotifier {
   }
 
   // ============ Getters ============
-  
+
   List<model.Expense> get expenses => _expenses;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -38,18 +38,37 @@ class ExpenseService extends ChangeNotifier {
       notifyListeners();
 
       final dbExpenses = await _database.getAllExpenses();
-      _expenses = dbExpenses.map((e) => _mapToModel(e)).toList();
+      final newExpenses = dbExpenses.map((e) => _mapToModel(e)).toList();
+
+      // Solo notificar si realmente cambió algo
+      final hasChanged =
+          _expenses.length != newExpenses.length ||
+          !_listEquals(_expenses, newExpenses);
+
+      _expenses = newExpenses;
 
       // Limpiar caché
       _expensesByCategoryCache.clear();
 
       _isLoading = false;
-      notifyListeners();
+
+      // Solo notificar si hubo cambios
+      if (hasChanged || _isLoading != false) {
+        notifyListeners();
+      }
     } catch (e) {
       _error = 'Error al cargar gastos: $e';
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  bool _listEquals(List<model.Expense> a, List<model.Expense> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i].id != b[i].id) return false;
+    }
+    return true;
   }
 
   /// Carga gastos filtrados por rango de fechas
@@ -74,13 +93,13 @@ class ExpenseService extends ChangeNotifier {
       if (_expensesByCategoryCache.containsKey(category)) {
         return _expensesByCategoryCache[category]!;
       }
-      
+
       final dbExpenses = await _database.getExpensesByCategory(category);
       final expenses = dbExpenses.map((e) => _mapToModel(e)).toList();
-      
+
       // Guardar en caché
       _expensesByCategoryCache[category] = expenses;
-      
+
       return expenses;
     } catch (e) {
       _error = 'Error al filtrar por categoría: $e';
@@ -177,7 +196,9 @@ class ExpenseService extends ChangeNotifier {
     final now = DateTime.now();
     final start = now.subtract(Duration(days: now.weekday - 1));
     final startOfWeek = DateTime(start.year, start.month, start.day);
-    final endOfWeek = startOfWeek.add(const Duration(days: 6, hours: 23, minutes: 59, seconds: 59));
+    final endOfWeek = startOfWeek.add(
+      const Duration(days: 6, hours: 23, minutes: 59, seconds: 59),
+    );
     return await getTotalExpenses(startOfWeek, endOfWeek);
   }
 
@@ -198,12 +219,15 @@ class ExpenseService extends ChangeNotifier {
   }
 
   /// Obtiene gastos agrupados por categoría en un período específico
-  Future<Map<String, double>> getExpensesByCategoryPeriod(DateTime start, DateTime end) async {
+  Future<Map<String, double>> getExpensesByCategoryPeriod(
+    DateTime start,
+    DateTime end,
+  ) async {
     final expenses = await getExpensesByDateRange(start, end);
     final Map<String, double> categoryTotals = {};
 
     for (final expense in expenses) {
-      categoryTotals[expense.category] = 
+      categoryTotals[expense.category] =
           (categoryTotals[expense.category] ?? 0) + expense.amount;
     }
 
@@ -216,7 +240,7 @@ class ExpenseService extends ChangeNotifier {
     final Map<String, double> subcategoryTotals = {};
 
     for (final expense in expenses) {
-      subcategoryTotals[expense.subcategory] = 
+      subcategoryTotals[expense.subcategory] =
           (subcategoryTotals[expense.subcategory] ?? 0) + expense.amount;
     }
 

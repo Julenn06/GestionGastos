@@ -3,7 +3,7 @@ import '../../core/theme/app_theme.dart';
 import '../../models/quick_action.dart';
 
 /// Widget para mostrar y ejecutar una acción rápida
-/// 
+///
 /// Muestra un botón visual atractivo que permite registrar
 /// un gasto predefinido con un solo toque.
 class QuickActionButton extends StatelessWidget {
@@ -20,7 +20,7 @@ class QuickActionButton extends StatelessWidget {
     if (colorHex == null || colorHex.isEmpty) {
       return AppTheme.primaryColor;
     }
-    
+
     try {
       // Eliminar el # si existe
       final hexColor = colorHex.replaceAll('#', '');
@@ -41,68 +41,65 @@ class QuickActionButton extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(AppTheme.radiusM),
           child: Container(
-          padding: const EdgeInsets.all(AppTheme.paddingM),
-          decoration: BoxDecoration(
-            color: AppTheme.cardDark,
-            borderRadius: BorderRadius.circular(AppTheme.radiusM),
-            border: Border.all(
-              color: color.withValues(alpha: 0.3),
-              width: 2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: color.withValues(alpha: 0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Icono
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.2),
-                  shape: BoxShape.circle,
+            padding: const EdgeInsets.all(AppTheme.paddingM),
+            decoration: BoxDecoration(
+              color: AppTheme.cardDark,
+              borderRadius: BorderRadius.circular(AppTheme.radiusM),
+              border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: 0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
                 ),
-                child: Center(
-                  child: Text(
-                    action.icon,
-                    style: const TextStyle(fontSize: 24),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Icono
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      action.icon,
+                      style: const TextStyle(fontSize: 24),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 6),
+                const SizedBox(height: 6),
 
-              // Nombre
-              Text(
-                action.name,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 2),
+                // Nombre
+                Text(
+                  action.name,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 2),
 
-              // Monto
-              Text(
-                '${action.amount.toStringAsFixed(2)}€',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-            ],
+                // Monto
+                Text(
+                  '${action.amount.toStringAsFixed(2)}€',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    ),
     );
   }
 }
@@ -149,12 +146,12 @@ class _QuickActionsRowState extends State<QuickActionsRow> {
       if (newIndex > maxIndex) {
         newIndex = maxIndex;
       }
-      
+
       if (newIndex > oldIndex) newIndex--;
       final item = _currentActions.removeAt(oldIndex);
       _currentActions.insert(newIndex, item);
     });
-    
+
     // Guardar automáticamente después de soltar
     Future.delayed(const Duration(milliseconds: 100), () {
       if (widget.onReorder != null && mounted) {
@@ -166,7 +163,7 @@ class _QuickActionsRowState extends State<QuickActionsRow> {
   @override
   Widget build(BuildContext context) {
     final actionCount = _currentActions.length;
-    
+
     return SizedBox(
       height: 140,
       child: ReorderableListView.builder(
@@ -211,9 +208,7 @@ class _QuickActionsRowState extends State<QuickActionsRow> {
               key: const ValueKey('add_button'),
               width: 120,
               margin: const EdgeInsets.only(right: AppTheme.paddingM),
-              child: IgnorePointer(
-                child: _AddQuickActionButton(onTap: widget.onAddNew),
-              ),
+              child: _AddQuickActionButton(onTap: widget.onAddNew),
             );
           }
 
@@ -274,16 +269,16 @@ class _AddQuickActionButton extends StatelessWidget {
             Text(
               'Nueva',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppTheme.primaryColor,
-                    fontWeight: FontWeight.bold,
-                  ),
+                color: AppTheme.primaryColor,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             Text(
               'Acción',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppTheme.primaryColor,
-                    fontWeight: FontWeight.bold,
-                  ),
+                color: AppTheme.primaryColor,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),

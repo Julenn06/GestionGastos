@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../services/expense_service.dart';
 import '../../services/investment_service.dart';
-import '../../services/professional_pdf_service.dart';
+import '../../services/simple_pdf_service.dart';
 import '../../models/investment.dart';
 import '../../core/theme/app_theme.dart';
 import 'package:excel/excel.dart' as excel_pkg;
@@ -360,7 +360,7 @@ class _AdvancedExportScreenState extends State<AdvancedExportScreen> {
   Future<void> _exportToPDF() async {
     final expenseService = context.read<ExpenseService>();
     final investmentService = context.read<InvestmentService>();
-    final pdfService = ProfessionalPdfService();
+    final pdfService = SimplePdfService();
 
     // Obtener datos
     final expenses = await expenseService.getExpensesByDateRange(_startDate, _endDate);
@@ -370,7 +370,7 @@ class _AdvancedExportScreenState extends State<AdvancedExportScreen> {
 
     if (!mounted) return;
 
-    // Generar PDF profesional
+    // Generar PDF simple y directo
     String? filePath;
     if (_includeInvestments && investments.isNotEmpty) {
       // Reporte completo

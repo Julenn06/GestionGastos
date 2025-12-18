@@ -33,7 +33,7 @@ android {
     // Splits solo para release
     splits {
         abi {
-            isEnable = true  // Habilitado para splits por arquitectura
+            isEnable = false  // Habilitado para splits por arquitectura
             reset()
             include("armeabi-v7a", "arm64-v8a", "x86_64")
             isUniversalApk = false
