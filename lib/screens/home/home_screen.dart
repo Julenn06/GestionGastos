@@ -33,6 +33,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   double _monthlyExpenses = 0;
+  double _totalInvested = 0;
   double _totalCurrentValue = 0;
   double _totalIncomes = 0;
   int _lastExpenseCount = 0;
@@ -45,13 +46,10 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadData();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Recargar si los datos han cambiado
-    final expenseService = context.watch<ExpenseService>();
-    final incomeService = context.watch<IncomeService>();
-    final investmentService = context.watch<InvestmentService>();
+  void _checkForDataChanges() {
+    final expenseService = context.read<ExpenseService>();
+    final incomeService = context.read<IncomeService>();
+    final investmentService = context.read<InvestmentService>();
     
     bool shouldReload = false;
     
@@ -76,19 +74,36 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadData() async {
+    _checkForDataChanges();
     final expenseService = context.read<ExpenseService>();
     final investmentService = context.read<InvestmentService>();
     final incomeService = context.read<IncomeService>();
 
     final monthly = await expenseService.getMonthlyTotal();
+    final amountInvested = await investmentService.getTotalInvested();
     final currentValue = await investmentService.getTotalCurrentValue();
     final totalIncomes = await incomeService.getAllTimeTotal();
+    
+    // Actualizar precios automáticamente al cargar
+    _updateInvestmentPricesInBackground();
 
     setState(() {
       _monthlyExpenses = monthly;
+      _totalInvested = amountInvested;
       _totalCurrentValue = currentValue;
       _totalIncomes = totalIncomes;
     });
+  }
+  
+  /// Actualiza los precios de las inversiones en segundo plano
+  Future<void> _updateInvestmentPricesInBackground() async {
+    try {
+      final investmentService = context.read<InvestmentService>();
+      // Actualizar precios sin mostrar loading ni interrumpir la UI
+      await investmentService.updateAllPricesFromApi();
+    } catch (e) {
+      // Ignorar errores silenciosamente (sin internet, API caída, etc.)
+    }
   }
 
   void _onItemTapped(int index) {
@@ -141,44 +156,78 @@ class _HomeScreenState extends State<HomeScreen> {
       final existingInvestment = investmentService.investments
           .firstWhere((inv) => inv.id == investment.linkedInvestmentId);
       
+      // Solo actualizar el monto invertido, no el valor actual
       final success = await investmentService.updateInvestment(
         existingInvestment.copyWith(
           amountInvested: existingInvestment.amountInvested + investment.amount,
-          currentValue: existingInvestment.currentValue + investment.amount,
           lastUpdate: DateTime.now(),
         ),
       );
 
-      if (success && context.mounted) {
+      // Intentar actualizar el precio desde la API
+      if (success) {
+        final apiSuccess = await investmentService.updatePriceFromApi(investment.linkedInvestmentId);
+        
+        // Si la API no funciona (activo sin API), actualizar manualmente
+        if (!apiSuccess) {
+          await investmentService.updateInvestment(
+            existingInvestment.copyWith(
+              amountInvested: existingInvestment.amountInvested + investment.amount,
+              currentValue: existingInvestment.currentValue + investment.amount,
+              lastUpdate: DateTime.now(),
+            ),
+          );
+        }
+      }
+
+      if (success && mounted) {
         await _loadData();
-        SuccessSnackBar.show(
-          context,
-          title: 'Inversión actualizada',
-          subtitle: '+${investment.amount.toStringAsFixed(2)}€ en ${investment.investmentName}',
-          icon: Icons.trending_up,
-        );
+        if (mounted) {
+          SuccessSnackBar.show(
+            // ignore: use_build_context_synchronously
+            context,
+            title: 'Inversión actualizada',
+            subtitle: '+${investment.amount.toStringAsFixed(2)}€ en ${investment.investmentName}',
+            icon: Icons.trending_up,
+          );
+        }
       }
     } else {
-      // Crear nueva inversión
+      // Crear nueva inversión con valor inicial igual al monto
       final success = await investmentService.addInvestment(
         type: investment.type,
         name: investment.investmentName,
         platform: investment.platform,
         amountInvested: investment.amount,
-        currentValue: investment.amount,
+        currentValue: investment.amount, // Valor inicial
         dateInvested: DateTime.now(),
         notes: 'Aportación vía acción rápida',
         icon: investment.icon,
       );
 
-      if (success && context.mounted) {
+      // Intentar actualizar el precio desde la API si se creó exitosamente
+      if (success) {
+        // Encontrar la inversión recién creada
+        await investmentService.loadInvestments();
+        final newInvestment = investmentService.investments
+            .where((inv) => inv.name == investment.investmentName)
+            .reduce((a, b) => a.lastUpdate.isAfter(b.lastUpdate) ? a : b);
+        
+        // Si la API falla, el valor ya está establecido correctamente
+        await investmentService.updatePriceFromApi(newInvestment.id);
+      }
+
+      if (success && mounted) {
         await _loadData();
-        SuccessSnackBar.show(
-          context,
-          title: 'Inversión registrada',
-          subtitle: '${investment.amount.toStringAsFixed(2)}€ en ${investment.investmentName}',
-          icon: Icons.trending_up,
-        );
+        if (mounted) {
+          SuccessSnackBar.show(
+            // ignore: use_build_context_synchronously
+            context,
+            title: 'Inversión registrada',
+            subtitle: '${investment.amount.toStringAsFixed(2)}€ en ${investment.investmentName}',
+            icon: Icons.trending_up,
+          );
+        }
       }
     }
   }
@@ -270,9 +319,12 @@ class _HomeScreenState extends State<HomeScreen> {
           // Balance Card
           BalanceCard(
             totalExpenses: _monthlyExpenses,
-            totalInvestments: _totalCurrentValue,
+            totalInvestmentsInvested: _totalInvested,
+            totalInvestmentsCurrent: _totalCurrentValue,
             totalIncomes: _totalIncomes,
           ),
+
+          const SizedBox(height: AppTheme.paddingM),
 
           const SizedBox(height: AppTheme.paddingM),
 

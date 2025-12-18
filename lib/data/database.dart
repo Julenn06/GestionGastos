@@ -142,7 +142,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration {
@@ -151,6 +151,8 @@ class AppDatabase extends _$AppDatabase {
         await m.createAll();
         // Insertar categorías predeterminadas
         await _insertDefaultCategories();
+        // Crear índices para optimizar consultas
+        await _createIndexes();
       },
       onUpgrade: (Migrator m, int from, int to) async {
         if (from < 2) {
@@ -163,8 +165,28 @@ class AppDatabase extends _$AppDatabase {
         if (from < 4) {
           await m.createTable(incomes);
         }
+        if (from < 5) {
+          // Versión 5: Agregar índices para optimizar rendimiento
+          await _createIndexes();
+        }
       },
     );
+  }
+
+  /// Crea índices en las tablas para optimizar consultas frecuentes
+  Future<void> _createIndexes() async {
+    // Índices para Expenses
+    await customStatement('CREATE INDEX IF NOT EXISTS idx_expenses_category ON expenses(category);');
+    await customStatement('CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(date);');
+    await customStatement('CREATE INDEX IF NOT EXISTS idx_expenses_category_date ON expenses(category, date);');
+    
+    // Índices para Investments
+    await customStatement('CREATE INDEX IF NOT EXISTS idx_investments_type ON investments(type);');
+    await customStatement('CREATE INDEX IF NOT EXISTS idx_investments_date ON investments(date_invested);');
+    
+    // Índices para Incomes
+    await customStatement('CREATE INDEX IF NOT EXISTS idx_incomes_category ON incomes(category);');
+    await customStatement('CREATE INDEX IF NOT EXISTS idx_incomes_date ON incomes(date);');
   }
 
   /// Inserta las categorías predeterminadas al crear la BD
@@ -584,6 +606,9 @@ LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dbFolder = await getApplicationDocumentsDirectory();
     final file = File(p.join(dbFolder.path, 'gestion_gastos.db'));
-    return NativeDatabase(file);
+    return NativeDatabase(
+      file,
+      logStatements: false, // Desactivar logs SQL en producción
+    );
   });
 }

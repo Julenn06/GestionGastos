@@ -167,7 +167,7 @@ class _AddIncomeScreenState extends State<AddIncomeScreen> {
 
             // Selector de categoría
             DropdownButtonFormField<String>(
-              value: _selectedCategory,
+              initialValue: _selectedCategory,
               decoration: const InputDecoration(
                 labelText: 'Categoría',
                 prefixIcon: Icon(Icons.category, color: AppTheme.successColor),

@@ -176,11 +176,19 @@ class QuickActionService extends ChangeNotifier {
       final item = _quickActions.removeAt(oldIndex);
       _quickActions.insert(newIndex, item);
 
-      // Actualiza el orden en la base de datos
-      for (int i = 0; i < _quickActions.length; i++) {
-        final updated = _quickActions[i].copyWith(order: i);
-        await updateQuickAction(updated);
-      }
+      // Actualiza el orden en batch para mejor rendimiento
+      await _database.batch((batch) {
+        for (int i = 0; i < _quickActions.length; i++) {
+          final updated = _quickActions[i].copyWith(order: i);
+          batch.update(
+            _database.quickActions,
+            QuickActionsCompanion(
+              order: drift.Value(i),
+            ),
+            where: (_) => _database.quickActions.id.equals(updated.id),
+          );
+        }
+      });
 
       notifyListeners();
       return true;

@@ -88,11 +88,11 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
       ),
     );
 
-    if (confirmed == true) {
+    if (confirmed == true && mounted) {
       final expenseService = context.read<ExpenseService>();
       final success = await expenseService.deleteExpense(id);
       
-      if (success) {
+      if (success && mounted) {
         await _loadExpenses();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

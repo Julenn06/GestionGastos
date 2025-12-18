@@ -33,7 +33,11 @@ class Investment {
   /// Icono o emoji representativo
   final String icon;
 
-  const Investment({
+  // Cache para evitar recalcular en cada acceso
+  double? _cachedProfitLoss;
+  double? _cachedProfitLossPercentage;
+
+  Investment({
     required this.id,
     required this.type,
     required this.name,
@@ -46,13 +50,21 @@ class Investment {
     required this.icon,
   });
 
-  /// Calcula la ganancia o pérdida absoluta
-  double get profitLoss => currentValue - amountInvested;
+  /// Calcula la ganancia o pérdida absoluta (cached)
+  double get profitLoss {
+    _cachedProfitLoss ??= currentValue - amountInvested;
+    return _cachedProfitLoss!;
+  }
 
-  /// Calcula el porcentaje de ganancia o pérdida
+  /// Calcula el porcentaje de ganancia o pérdida (cached)
   double get profitLossPercentage {
-    if (amountInvested == 0) return 0;
-    return ((currentValue - amountInvested) / amountInvested) * 100;
+    if (_cachedProfitLossPercentage != null) return _cachedProfitLossPercentage!;
+    if (amountInvested == 0) {
+      _cachedProfitLossPercentage = 0;
+      return 0;
+    }
+    _cachedProfitLossPercentage = ((currentValue - amountInvested) / amountInvested) * 100;
+    return _cachedProfitLossPercentage!;
   }
 
   /// Indica si la inversión está en positivo

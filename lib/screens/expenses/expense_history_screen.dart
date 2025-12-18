@@ -138,6 +138,7 @@ class _ExpenseHistoryScreenState extends State<ExpenseHistoryScreen> {
             itemBuilder: (context, index) {
               final expense = filteredExpenses[index];
               return Card(
+                key: ValueKey(expense.id),
                 margin: const EdgeInsets.only(bottom: AppTheme.paddingM),
                 child: ListTile(
                   leading: CircleAvatar(

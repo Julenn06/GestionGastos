@@ -39,6 +39,7 @@ class SecurityService {
     try {
       final canCheck = await canCheckBiometrics();
       if (!canCheck) {
+        LogService.warning('No hay biometría disponible en el dispositivo', 'SecurityService');
         return false;
       }
 
@@ -46,7 +47,10 @@ class SecurityService {
         localizedReason: 'Por favor, autentícate para acceder a la aplicación',
       );
     } on PlatformException catch (e) {
-      LogService.error('Error en autenticación biométrica', e, null, 'SecurityService');
+      LogService.error('Error en autenticación biométrica: ${e.code} - ${e.message}', e, null, 'SecurityService');
+      return false;
+    } catch (e) {
+      LogService.error('Error desconocido en autenticación biométrica', e, null, 'SecurityService');
       return false;
     }
   }

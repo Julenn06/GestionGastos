@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import '../data/database.dart';
 import '../models/investment.dart' as model;
+import 'price_service.dart';
 import 'package:drift/drift.dart' as drift;
 
 /// Servicio de gestión de inversiones
@@ -10,9 +11,11 @@ import 'package:drift/drift.dart' as drift;
 /// con inversiones, incluyendo CRUD, cálculos de rendimiento y estadísticas.
 class InvestmentService extends ChangeNotifier {
   final AppDatabase _database;
+  final PriceService _priceService = PriceService();
   final _uuid = const Uuid();
 
   List<model.Investment> _investments = [];
+  final Map<String, List<model.Investment>> _investmentsByTypeCache = {};
   bool _isLoading = false;
   String? _error;
 
@@ -39,6 +42,9 @@ class InvestmentService extends ChangeNotifier {
       final dbInvestments = await _database.getAllInvestments();
       _investments = dbInvestments.map((e) => _mapToModel(e)).toList();
 
+      // Limpiar caché
+      _investmentsByTypeCache.clear();
+
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -51,8 +57,18 @@ class InvestmentService extends ChangeNotifier {
   /// Carga inversiones filtradas por tipo
   Future<List<model.Investment>> getInvestmentsByType(String type) async {
     try {
+      // Verificar caché
+      if (_investmentsByTypeCache.containsKey(type)) {
+        return _investmentsByTypeCache[type]!;
+      }
+      
       final dbInvestments = await _database.getInvestmentsByType(type);
-      return dbInvestments.map((e) => _mapToModel(e)).toList();
+      final investments = dbInvestments.map((e) => _mapToModel(e)).toList();
+      
+      // Guardar en caché
+      _investmentsByTypeCache[type] = investments;
+      
+      return investments;
     } catch (e) {
       _error = 'Error al filtrar inversiones: $e';
       notifyListeners();
@@ -231,6 +247,125 @@ class InvestmentService extends ChangeNotifier {
     return sorted.take(limit).toList();
   }
 
+  // ============ Actualización Automática de Precios ============
+
+  /// Actualiza el precio de una inversión específica desde API
+  /// 
+  /// Detecta automáticamente el tipo de activo y consulta la API apropiada
+  Future<bool> updatePriceFromApi(String investmentId, {String? apiKey}) async {
+    try {
+      final investment = _investments.firstWhere((inv) => inv.id == investmentId);
+      
+      // Obtener el precio actual del activo
+      final currentPrice = await _priceService.getAssetPrice(
+        investment.type,
+        investment.name,
+        apiKey: apiKey,
+      );
+
+      if (currentPrice == null) {
+        _error = 'No se pudo obtener el precio para ${investment.name}';
+        notifyListeners();
+        return false;
+      }
+
+      // Intentar obtener el precio inicial guardado en las notas
+      double? initialPrice = _extractInitialPriceFromNotes(investment.notes);
+
+      // Si no hay precio inicial guardado, obtenerlo ahora y guardarlo
+      if (initialPrice == null) {
+        initialPrice = currentPrice;
+        
+        // Guardar el precio inicial en las notas
+        final updatedNotes = _addInitialPriceToNotes(investment.notes, initialPrice);
+        final updatedInvestment = investment.copyWith(notes: updatedNotes);
+        await updateInvestment(updatedInvestment);
+      }
+
+      // Calcular cuántas unidades del activo se compraron
+      final quantity = investment.amountInvested / initialPrice;
+      
+      // Calcular el nuevo valor basado en las unidades y el precio actual
+      final newValue = quantity * currentPrice;
+
+      // Actualizar en la base de datos
+      return await updateInvestmentValue(investmentId, newValue);
+    } catch (e) {
+      _error = 'Error al actualizar precio: $e';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Actualiza los precios de todas las inversiones que soporten actualización automática
+  /// 
+  /// Retorna un mapa con el ID de la inversión y si se actualizó correctamente
+  Future<Map<String, bool>> updateAllPricesFromApi({String? apiKey}) async {
+    final Map<String, bool> results = {};
+    
+    for (final investment in _investments) {
+      // Solo actualizar si el tipo soporta actualización automática
+      if (_priceService.supportsAutomaticUpdate(investment.type)) {
+        final success = await updatePriceFromApi(investment.id, apiKey: apiKey);
+        results[investment.id] = success;
+        
+        // Pequeña pausa para no saturar las APIs
+        await Future.delayed(const Duration(milliseconds: 500));
+      } else {
+        results[investment.id] = false; // No soportado
+      }
+    }
+    
+    return results;
+  }
+
+  /// Verifica si una inversión soporta actualización automática de precio
+  bool supportsAutomaticPriceUpdate(String investmentId) {
+    try {
+      final investment = _investments.firstWhere((inv) => inv.id == investmentId);
+      return _priceService.supportsAutomaticUpdate(investment.type);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Obtiene el precio actual de un símbolo específico (para preview antes de invertir)
+  Future<double?> getAssetCurrentPrice(String type, String symbol) async {
+    return await _priceService.getAssetPrice(type, symbol);
+  }
+
+  // ============ Métodos Auxiliares para Precio Inicial ============
+
+  /// Extrae el precio inicial guardado en las notas
+  double? _extractInitialPriceFromNotes(String? notes) {
+    if (notes == null || notes.isEmpty) return null;
+    
+    final regex = RegExp(r'\[PRECIO_INICIAL:([\d.]+)\]');
+    final match = regex.firstMatch(notes);
+    
+    if (match != null && match.groupCount >= 1) {
+      return double.tryParse(match.group(1)!);
+    }
+    
+    return null;
+  }
+
+  /// Añade el precio inicial a las notas
+  String _addInitialPriceToNotes(String? existingNotes, double initialPrice) {
+    final priceTag = '[PRECIO_INICIAL:${initialPrice.toStringAsFixed(2)}]';
+    
+    if (existingNotes == null || existingNotes.isEmpty) {
+      return priceTag;
+    }
+    
+    // Si ya tiene un precio inicial, no añadir otro
+    if (existingNotes.contains('[PRECIO_INICIAL:')) {
+      return existingNotes;
+    }
+    
+    return '$existingNotes $priceTag';
+  }
+
   // ============ Métodos de Mapeo ============
 
   /// Convierte un objeto de base de datos a modelo
@@ -263,5 +398,12 @@ class InvestmentService extends ChangeNotifier {
       notes: investment.notes,
       icon: investment.icon,
     );
+  }
+
+  /// Libera recursos
+  @override
+  void dispose() {
+    _priceService.dispose();
+    super.dispose();
   }
 }

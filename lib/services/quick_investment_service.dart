@@ -119,10 +119,18 @@ class QuickInvestmentService extends ChangeNotifier {
   /// Actualiza el orden de las inversiones rápidas
   Future<bool> updateOrder(List<model.QuickInvestment> reorderedInvestments) async {
     try {
-      for (int i = 0; i < reorderedInvestments.length; i++) {
-        final investment = reorderedInvestments[i].copyWith(order: i);
-        await updateQuickInvestment(investment);
-      }
+      // Batch update para mejor rendimiento
+      await _database.batch((batch) {
+        for (int i = 0; i < reorderedInvestments.length; i++) {
+          batch.update(
+            _database.quickInvestments,
+            QuickInvestmentsCompanion(
+              order: drift.Value(i),
+            ),
+            where: (_) => _database.quickInvestments.id.equals(reorderedInvestments[i].id),
+          );
+        }
+      });
       await loadQuickInvestments();
       return true;
     } catch (e) {

@@ -188,7 +188,7 @@ class _AddQuickActionScreenState extends State<AddQuickActionScreen> {
 
             // Categoría
             DropdownButtonFormField<String>(
-              value: _selectedCategory,
+              initialValue: _selectedCategory,
               decoration: InputDecoration(
                 labelText: 'Categoría',
                 prefixIcon: Icon(Icons.category),

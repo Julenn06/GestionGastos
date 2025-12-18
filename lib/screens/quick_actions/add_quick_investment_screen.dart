@@ -36,6 +36,13 @@ class _AddQuickInvestmentScreenState extends State<AddQuickInvestmentScreen> {
     '+ Personalizado': '✨',
   };
 
+  // Sugerencias de activos populares por categoría
+  final Map<String, List<String>> _assetSuggestions = {
+    'Cripto': ['BTC', 'ETH', 'BNB', 'SOL', 'ADA', 'XRP', 'DOGE', 'DOT', 'MATIC', 'AVAX', 'LINK', 'UNI', 'LTC'],
+    'Acciones': ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX', 'AMD', 'INTC', 'DIS', 'BA'],
+    'ETFs': ['SPY', 'QQQ', 'IWM', 'VTI', 'VOO', 'DIA', 'EEM', 'GLD', 'TLT', 'HYG'],
+  };
+
   // Iconos disponibles para elegir
   final List<String> _availableIcons = [
     '📈', '📉', '₿', '💼', '📊', '🏢', '🪙', '💰',
@@ -49,6 +56,19 @@ class _AddQuickInvestmentScreenState extends State<AddQuickInvestmentScreen> {
     _amountController.dispose();
     _customCategoryController.dispose();
     super.dispose();
+  }
+
+  /// Obtiene las sugerencias para la categoría actual
+  List<String> _getCurrentSuggestions() {
+    if (_selectedCategory == null || _isCustomCategory) return [];
+    return _assetSuggestions[_selectedCategory] ?? [];
+  }
+
+  /// Selecciona una sugerencia
+  void _selectSuggestion(String suggestion) {
+    setState(() {
+      _nameController.text = suggestion;
+    });
   }
 
   Future<void> _saveQuickInvestment() async {
@@ -146,48 +166,9 @@ class _AddQuickInvestmentScreenState extends State<AddQuickInvestmentScreen> {
             ),
             const SizedBox(height: AppTheme.paddingL),
 
-            // Nombre
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Nombre',
-                prefixIcon: Icon(Icons.label),
-                hintText: 'Ej: Bitcoin mensual',
-              ),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Por favor ingresa un nombre';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: AppTheme.paddingL),
-
-            // Monto
-            TextFormField(
-              controller: _amountController,
-              decoration: const InputDecoration(
-                labelText: 'Monto',
-                prefixText: '€ ',
-                suffixIcon: Icon(Icons.euro),
-              ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Por favor ingresa un monto';
-                }
-                final amount = double.tryParse(value);
-                if (amount == null || amount <= 0) {
-                  return 'Ingresa un monto válido';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: AppTheme.paddingL),
-
             // Categoría
             DropdownButtonFormField<String>(
-              value: _selectedCategory,
+              initialValue: _selectedCategory,
               decoration: InputDecoration(
                 labelText: 'Categoría',
                 prefixIcon: Icon(Icons.category),
@@ -218,6 +199,61 @@ class _AddQuickInvestmentScreenState extends State<AddQuickInvestmentScreen> {
                     _selectedIcon = _investmentCategories[value]!;
                   }
                 });
+              },
+            ),
+            const SizedBox(height: AppTheme.paddingL),
+
+            // Nombre
+            TextFormField(
+              controller: _nameController,
+              decoration: const InputDecoration(
+                labelText: 'Nombre',
+                prefixIcon: Icon(Icons.label),
+                hintText: 'Ej: Bitcoin mensual',
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Por favor ingresa un nombre';
+                }
+                return null;
+              },
+            ),
+            // Sugerencias de activos
+            if (_getCurrentSuggestions().isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _getCurrentSuggestions().map((suggestion) {
+                  return ActionChip(
+                    label: Text(suggestion),
+                    onPressed: () => _selectSuggestion(suggestion),
+                    backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    side: BorderSide(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
+                  );
+                }).toList(),
+              ),
+            ],
+            const SizedBox(height: AppTheme.paddingL),
+
+            // Monto
+            TextFormField(
+              controller: _amountController,
+              decoration: const InputDecoration(
+                labelText: 'Monto',
+                prefixText: '€ ',
+                suffixIcon: Icon(Icons.euro),
+              ),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Por favor ingresa un monto';
+                }
+                final amount = double.tryParse(value);
+                if (amount == null || amount <= 0) {
+                  return 'Ingresa un monto válido';
+                }
+                return null;
               },
             ),
             const SizedBox(height: AppTheme.paddingL),

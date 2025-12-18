@@ -287,18 +287,27 @@ class _InvestmentCategoryDetailScreenState extends State<InvestmentCategoryDetai
                                         ],
                                         const SizedBox(height: 6),
                                         Row(
+                                          mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Text(
-                                              'Actual: ${investment.currentValue.toStringAsFixed(2)}€',
-                                              style: const TextStyle(fontSize: 13),
+                                            Flexible(
+                                              flex: 1,
+                                              child: Text(
+                                                'Actual: ${investment.currentValue.toStringAsFixed(2)}€',
+                                                style: const TextStyle(fontSize: 13),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
                                             ),
                                             const SizedBox(width: 8),
-                                            Text(
-                                              '${profitLoss >= 0 ? '+' : ''}${profitLoss.toStringAsFixed(2)}€ (${profitLossPercent.toStringAsFixed(1)}%)',
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.bold,
-                                                color: profitLoss >= 0 ? AppTheme.successColor : AppTheme.errorColor,
+                                            Flexible(
+                                              flex: 1,
+                                              child: Text(
+                                                '${profitLoss >= 0 ? '+' : ''}${profitLoss.toStringAsFixed(2)}€ (${profitLossPercent.toStringAsFixed(1)}%)',
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: profitLoss >= 0 ? AppTheme.successColor : AppTheme.errorColor,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
                                               ),
                                             ),
                                           ],

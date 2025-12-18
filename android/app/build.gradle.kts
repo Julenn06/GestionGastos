@@ -29,12 +29,35 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
+    
+    // Splits solo para release
+    splits {
+        abi {
+            isEnable = true  // Habilitado para splits por arquitectura
+            reset()
+            include("armeabi-v7a", "arm64-v8a", "x86_64")
+            isUniversalApk = false
+        }
+    }
 
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+            
+            // Optimizaciones para reducir tamaño
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+        debug {
+            // Debug sin minificación pero con configuración específica
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }

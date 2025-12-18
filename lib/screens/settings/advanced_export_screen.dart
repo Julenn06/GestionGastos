@@ -3,9 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../services/expense_service.dart';
 import '../../services/investment_service.dart';
+import '../../services/professional_pdf_service.dart';
+import '../../models/investment.dart';
 import '../../core/theme/app_theme.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
 import 'package:excel/excel.dart' as excel_pkg;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -360,180 +360,63 @@ class _AdvancedExportScreenState extends State<AdvancedExportScreen> {
   Future<void> _exportToPDF() async {
     final expenseService = context.read<ExpenseService>();
     final investmentService = context.read<InvestmentService>();
+    final pdfService = ProfessionalPdfService();
 
     // Obtener datos
     final expenses = await expenseService.getExpensesByDateRange(_startDate, _endDate);
     final investments = _includeInvestments
         ? investmentService.investments
-        : [];
+        : <Investment>[];
 
-    // Crear PDF
-    final pdf = pw.Document();
+    if (!mounted) return;
 
-    // Página principal
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
-        build: (context) => [
-          // Título
-          pw.Header(
-            level: 0,
-            child: pw.Text(
-              'Reporte Financiero',
-              style: pw.TextStyle(
-                fontSize: 24,
-                fontWeight: pw.FontWeight.bold,
-              ),
-            ),
-          ),
-          pw.SizedBox(height: 10),
-          pw.Text(
-            'Período: ${DateFormat('dd/MM/yyyy').format(_startDate)} - ${DateFormat('dd/MM/yyyy').format(_endDate)}',
-            style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey),
-          ),
-          pw.Divider(),
-          pw.SizedBox(height: 20),
-
-          // Resumen
-          if (_includeStatistics) ...[
-            pw.Header(level: 1, text: 'Resumen'),
-            pw.SizedBox(height: 10),
-            _buildSummarySection(expenses, investments),
-            pw.SizedBox(height: 20),
-          ],
-
-          // Tabla de gastos
-          pw.Header(level: 1, text: 'Detalle de Gastos'),
-          pw.SizedBox(height: 10),
-          _buildExpenseTable(expenses),
-          pw.SizedBox(height: 20),
-
-          // Inversiones
-          if (_includeInvestments && investments.isNotEmpty) ...[
-            pw.Header(level: 1, text: 'Inversiones'),
-            pw.SizedBox(height: 10),
-            _buildInvestmentTable(investments),
-          ],
-        ],
-      ),
-    );
-
-    // Guardar y compartir
-    await _savePdfAndShare(pdf, 'reporte_financiero');
-  }
-
-  pw.Widget _buildSummarySection(List<dynamic> expenses, List<dynamic> investments) {
-    final totalExpenses = expenses.fold<double>(0, (sum, e) => sum + e.amount);
-    final totalInvested = investments.fold<double>(0, (sum, i) => sum + i.amountInvested);
-    final totalCurrentValue = investments.fold<double>(0, (sum, i) => sum + i.currentValue);
-    final profitLoss = totalCurrentValue - totalInvested;
-
-    return pw.Container(
-      padding: const pw.EdgeInsets.all(16),
-      decoration: pw.BoxDecoration(
-        border: pw.Border.all(color: PdfColors.grey300),
-        borderRadius: pw.BorderRadius.circular(8),
-      ),
-      child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          _buildSummaryRow('Total Gastos:', '€${totalExpenses.toStringAsFixed(2)}'),
-          pw.SizedBox(height: 8),
-          _buildSummaryRow('Total Invertido:', '€${totalInvested.toStringAsFixed(2)}'),
-          pw.SizedBox(height: 8),
-          _buildSummaryRow('Valor Actual:', '€${totalCurrentValue.toStringAsFixed(2)}'),
-          pw.SizedBox(height: 8),
-          _buildSummaryRow(
-            'Beneficio/Pérdida:',
-            '€${profitLoss.toStringAsFixed(2)}',
-            color: profitLoss >= 0 ? PdfColors.green : PdfColors.red,
-          ),
-        ],
-      ),
-    );
-  }
-
-  pw.Widget _buildSummaryRow(String label, String value, {PdfColor? color}) {
-    return pw.Row(
-      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-      children: [
-        pw.Text(label, style: const pw.TextStyle(fontSize: 12)),
-        pw.Text(
-          value,
-          style: pw.TextStyle(
-            fontSize: 12,
-            fontWeight: pw.FontWeight.bold,
-            color: color,
-          ),
-        ),
-      ],
-    );
-  }
-
-  pw.Widget _buildExpenseTable(List<dynamic> expenses) {
-    if (expenses.isEmpty) {
-      return pw.Text('No hay gastos en este período');
+    // Generar PDF profesional
+    String? filePath;
+    if (_includeInvestments && investments.isNotEmpty) {
+      // Reporte completo
+      filePath = await pdfService.generateCompleteReport(
+        expenses: expenses,
+        investments: investments,
+        startDate: _startDate,
+        endDate: _endDate,
+      );
+    } else if (investments.isNotEmpty && !_includeInvestments) {
+      // Solo inversiones
+      filePath = await pdfService.generateInvestmentReport(
+        investments: investments,
+      );
+    } else {
+      // Solo gastos
+      filePath = await pdfService.generateExpenseReport(
+        expenses: expenses,
+        startDate: _startDate,
+        endDate: _endDate,
+      );
     }
 
-    return pw.TableHelper.fromTextArray(
-      context: null,
-      headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
-      cellStyle: const pw.TextStyle(fontSize: 9),
-      headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
-      cellHeight: 30,
-      cellAlignments: {
-        0: pw.Alignment.centerLeft,
-        1: pw.Alignment.centerLeft,
-        2: pw.Alignment.centerRight,
-        3: pw.Alignment.centerLeft,
-      },
-      headers: ['Fecha', 'Categoría', 'Monto', 'Nota'],
-      data: expenses.map((expense) {
-        return [
-          DateFormat('dd/MM/yy').format(expense.date),
-          expense.category,
-          '€${expense.amount.toStringAsFixed(2)}',
-          expense.note ?? '-',
-        ];
-      }).toList(),
-    );
-  }
+    if (filePath != null && mounted) {
+      // Compartir PDF
+      final xFile = XFile(filePath);
+      if (!mounted) return;
+      
+      await SharePlus.instance.share(ShareParams(
+        files: [xFile],
+        subject: 'Reporte Financiero Profesional',
+      ));
 
-  pw.Widget _buildInvestmentTable(List<dynamic> investments) {
-    return pw.TableHelper.fromTextArray(
-      headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
-      cellStyle: const pw.TextStyle(fontSize: 9),
-      headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
-      cellHeight: 30,
-      headers: ['Nombre', 'Tipo', 'Invertido', 'Valor Actual', 'Ganancia'],
-      data: investments.map((inv) {
-        final profit = inv.currentValue - inv.amountInvested;
-        return [
-          inv.name,
-          inv.type,
-          '€${inv.amountInvested.toStringAsFixed(2)}',
-          '€${inv.currentValue.toStringAsFixed(2)}',
-          '€${profit.toStringAsFixed(2)}',
-        ];
-      }).toList(),
-    );
-  }
+      if (!mounted) return;
 
-  Future<void> _savePdfAndShare(pw.Document pdf, String filename) async {
-    final bytes = await pdf.save();
-    final dir = await getTemporaryDirectory();
-    final file = File('${dir.path}/$filename.pdf');
-    await file.writeAsBytes(bytes);
-
-    final xFile = XFile(file.path);
-    await SharePlus.instance.share(ShareParams(files: [xFile], subject: 'Reporte Financiero'));
-
-    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('PDF generado correctamente'),
+          content: Text('PDF profesional generado correctamente'),
           backgroundColor: AppTheme.successColor,
+        ),
+      );
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error al generar el PDF'),
+          backgroundColor: AppTheme.errorColor,
         ),
       );
     }

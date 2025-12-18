@@ -19,13 +19,15 @@ class _AddInvestmentScreenState extends State<AddInvestmentScreen> {
   final _nameController = TextEditingController();
   final _platformController = TextEditingController();
   final _amountInvestedController = TextEditingController();
-  final _currentValueController = TextEditingController();
   final _notesController = TextEditingController();
   
   String? _selectedType;
   DateTime _selectedDate = DateTime.now();
   String _selectedIcon = '📈';
   bool _isLoading = false;
+  double? _currentPrice;
+  bool _isFetchingPrice = false;
+  String? _priceError;
 
   final Map<String, String> _typeIcons = {
     'Acciones': '📊',
@@ -37,14 +39,66 @@ class _AddInvestmentScreenState extends State<AddInvestmentScreen> {
     'Otros': '💰',
   };
 
+  // Sugerencias de activos populares por tipo
+  final Map<String, List<String>> _assetSuggestions = {
+    'Criptomonedas': ['BTC', 'ETH', 'BNB', 'SOL', 'ADA', 'XRP', 'DOGE', 'DOT', 'MATIC', 'AVAX', 'LINK', 'UNI', 'LTC'],
+    'Acciones': ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'NFLX', 'AMD', 'INTC', 'DIS', 'BA'],
+    'ETFs': ['SPY', 'QQQ', 'IWM', 'VTI', 'VOO', 'DIA', 'EEM', 'GLD', 'TLT', 'HYG'],
+  };
+
   @override
   void dispose() {
     _nameController.dispose();
     _platformController.dispose();
     _amountInvestedController.dispose();
-    _currentValueController.dispose();
     _notesController.dispose();
     super.dispose();
+  }
+
+  /// Obtiene las sugerencias para el tipo actual
+  List<String> _getCurrentSuggestions() {
+    if (_selectedType == null) return [];
+    return _assetSuggestions[_selectedType] ?? [];
+  }
+
+  /// Selecciona una sugerencia
+  void _selectSuggestion(String suggestion) {
+    setState(() {
+      _nameController.text = suggestion;
+      _currentPrice = null;
+      _priceError = null;
+    });
+    // Obtener precio automáticamente
+    _fetchCurrentPrice();
+  }
+  
+  /// Obtiene el precio actual del activo desde la API
+  Future<void> _fetchCurrentPrice() async {
+    if (_selectedType == null || _nameController.text.isEmpty) {
+      return;
+    }
+    
+    setState(() {
+      _isFetchingPrice = true;
+      _priceError = null;
+    });
+    
+    final investmentService = context.read<InvestmentService>();
+    final price = await investmentService.getAssetCurrentPrice(
+      _selectedType!,
+      _nameController.text.trim(),
+    );
+    
+    setState(() {
+      _isFetchingPrice = false;
+      if (price != null) {
+        _currentPrice = price;
+        _priceError = null;
+      } else {
+        _currentPrice = null;
+        _priceError = 'No disponible';
+      }
+    });
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -75,13 +129,22 @@ class _AddInvestmentScreenState extends State<AddInvestmentScreen> {
 
     final investmentService = context.read<InvestmentService>();
     final gamificationService = context.read<GamificationService>();
+    
+    // Obtener precio actual si no lo tenemos
+    if (_currentPrice == null) {
+      await _fetchCurrentPrice();
+    }
+    
+    // Calcular valor actual basado en el monto invertido
+    final amountInvested = double.parse(_amountInvestedController.text);
+    final currentValue = _currentPrice != null ? amountInvested : amountInvested;
 
     final success = await investmentService.addInvestment(
       type: _selectedType!,
       name: _nameController.text,
       platform: _platformController.text.isEmpty ? null : _platformController.text,
-      amountInvested: double.parse(_amountInvestedController.text),
-      currentValue: double.parse(_currentValueController.text),
+      amountInvested: amountInvested,
+      currentValue: currentValue,
       dateInvested: _selectedDate,
       notes: _notesController.text.isEmpty ? null : _notesController.text,
       icon: _selectedIcon,
@@ -156,11 +219,32 @@ class _AddInvestmentScreenState extends State<AddInvestmentScreen> {
             // Nombre
             TextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Nombre o Símbolo',
-                prefixIcon: Icon(Icons.abc),
+                prefixIcon: const Icon(Icons.abc),
                 hintText: 'Ej: AAPL, BTC, S&P 500',
+                suffixIcon: _isFetchingPrice
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: Padding(
+                          padding: EdgeInsets.all(12.0),
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : IconButton(
+                        icon: const Icon(Icons.search),
+                        onPressed: _fetchCurrentPrice,
+                        tooltip: 'Obtener precio actual',
+                      ),
               ),
+              onChanged: (value) {
+                // Limpiar precio cuando cambia el símbolo
+                setState(() {
+                  _currentPrice = null;
+                  _priceError = null;
+                });
+              },
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Por favor ingresa un nombre';
@@ -168,6 +252,74 @@ class _AddInvestmentScreenState extends State<AddInvestmentScreen> {
                 return null;
               },
             ),
+            // Sugerencias de activos
+            if (_getCurrentSuggestions().isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _getCurrentSuggestions().map((suggestion) {
+                  return ActionChip(
+                    label: Text(suggestion),
+                    onPressed: () => _selectSuggestion(suggestion),
+                    backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    side: BorderSide(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
+                  );
+                }).toList(),
+              ),
+            ],
+            if (_currentPrice != null) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.successColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppTheme.successColor.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.check_circle, color: AppTheme.successColor, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Precio actual: €${_currentPrice!.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          color: AppTheme.successColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            if (_priceError != null) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.warningColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppTheme.warningColor.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.info_outline, color: AppTheme.warningColor, size: 20),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'Precio no disponible - se usará el monto invertido como valor inicial',
+                        style: TextStyle(
+                          color: AppTheme.warningColor,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: AppTheme.paddingL),
 
             // Plataforma
@@ -188,8 +340,9 @@ class _AddInvestmentScreenState extends State<AddInvestmentScreen> {
                 labelText: 'Monto Invertido',
                 prefixText: '€ ',
                 suffixIcon: Icon(Icons.euro),
+                helperText: 'Cantidad que vas a invertir',
               ),
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
               validator: (value) {
                 if (value == null || value.isEmpty) {
                   return 'Por favor ingresa el monto invertido';
@@ -197,28 +350,6 @@ class _AddInvestmentScreenState extends State<AddInvestmentScreen> {
                 final amount = double.tryParse(value);
                 if (amount == null || amount <= 0) {
                   return 'Ingresa un monto válido';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: AppTheme.paddingL),
-
-            // Valor actual
-            TextFormField(
-              controller: _currentValueController,
-              decoration: const InputDecoration(
-                labelText: 'Valor Actual',
-                prefixText: '€ ',
-                suffixIcon: Icon(Icons.euro),
-              ),
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Por favor ingresa el valor actual';
-                }
-                final amount = double.tryParse(value);
-                if (amount == null || amount < 0) {
-                  return 'Ingresa un valor válido';
                 }
                 return null;
               },

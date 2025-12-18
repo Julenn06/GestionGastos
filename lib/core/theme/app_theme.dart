@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 /// Tema de la aplicación con Material Design 3
 /// 
@@ -72,52 +71,52 @@ class AppTheme {
       // Scaffold
       scaffoldBackgroundColor: backgroundDark,
       
-      // Tipografía
-      textTheme: GoogleFonts.interTextTheme(
-        const TextTheme(
-          // Títulos
-          displayLarge: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.bold,
-            color: textPrimary,
-            letterSpacing: -0.5,
-          ),
-          displayMedium: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-            color: textPrimary,
-            letterSpacing: -0.5,
-          ),
-          displaySmall: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: textPrimary,
-          ),
-          
-          // Encabezados
-          headlineLarge: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
-            color: textPrimary,
-          ),
-          headlineMedium: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: textPrimary,
-          ),
-          headlineSmall: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: textPrimary,
-          ),
-          
-          // Títulos
-          titleLarge: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: textPrimary,
-          ),
-          titleMedium: TextStyle(
+      // Tipografía - Usar fuente del sistema para evitar descargas
+      fontFamily: 'Roboto', // Fuente por defecto de Android
+      textTheme: const TextTheme(
+        // Títulos
+        displayLarge: TextStyle(
+          fontSize: 32,
+          fontWeight: FontWeight.bold,
+          color: textPrimary,
+          letterSpacing: -0.5,
+        ),
+        displayMedium: TextStyle(
+          fontSize: 28,
+          fontWeight: FontWeight.bold,
+          color: textPrimary,
+          letterSpacing: -0.5,
+        ),
+        displaySmall: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: textPrimary,
+        ),
+        
+        // Encabezados
+        headlineLarge: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.w600,
+          color: textPrimary,
+        ),
+        headlineMedium: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: textPrimary,
+        ),
+        headlineSmall: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: textPrimary,
+        ),
+        
+        // Títulos
+        titleLarge: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: textPrimary,
+        ),
+        titleMedium: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
             color: textPrimary,
@@ -162,8 +161,7 @@ class AppTheme {
             color: textSecondary,
           ),
         ),
-      ),
-      
+
       // AppBar
       appBarTheme: const AppBarTheme(
         backgroundColor: backgroundDark,

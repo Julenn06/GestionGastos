@@ -8,7 +8,8 @@ import '../../core/theme/app_theme.dart';
 /// incluyendo iconos, gradientes y animaciones opcionales.
 class BalanceCard extends StatelessWidget {
   final double totalExpenses;
-  final double totalInvestments;
+  final double totalInvestmentsInvested;
+  final double totalInvestmentsCurrent;
   final double totalIncomes;
   final bool showDetails;
   final VoidCallback? onTap;
@@ -16,7 +17,8 @@ class BalanceCard extends StatelessWidget {
   const BalanceCard({
     super.key,
     required this.totalExpenses,
-    required this.totalInvestments,
+    required this.totalInvestmentsInvested,
+    required this.totalInvestmentsCurrent,
     this.totalIncomes = 0.0,
     this.showDetails = true,
     this.onTap,
@@ -29,7 +31,13 @@ class BalanceCard extends StatelessWidget {
       decimalDigits: 2,
     );
 
-    final balance = totalInvestments + totalIncomes - totalExpenses;
+    // Balance = Ingresos - Gastos - Inversiones (monto invertido)
+    // Las inversiones restan porque el dinero sale de la cartera
+    final balance = totalIncomes - totalExpenses - totalInvestmentsInvested;
+    
+    // Ganancia/pérdida de las inversiones
+    final investmentProfit = totalInvestmentsCurrent - totalInvestmentsInvested;
+    final hasProfit = investmentProfit >= 0;
 
     return GestureDetector(
       onTap: onTap,
@@ -113,11 +121,14 @@ class BalanceCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _DetailItem(
+                      _DetailItemWithSubtitle(
                         icon: Icons.trending_up,
                         label: 'Inversiones',
-                        value: currencyFormat.format(totalInvestments),
-                        color: Colors.blue[700]!,
+                        value: currencyFormat.format(totalInvestmentsCurrent),
+                        subtitle: investmentProfit != 0 
+                            ? '${hasProfit ? '+' : ''}${currencyFormat.format(investmentProfit)}'
+                            : null,
+                        color: hasProfit ? Colors.green[700]! : Colors.red[700]!,
                       ),
                       _DetailItem(
                         icon: Icons.account_balance_wallet,
@@ -176,6 +187,63 @@ class _DetailItem extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
         ),
+      ],
+    );
+  }
+}
+
+class _DetailItemWithSubtitle extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final String? subtitle;
+  final Color color;
+
+  const _DetailItemWithSubtitle({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.subtitle,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 16, color: Colors.black54),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.black54,
+                    fontWeight: FontWeight.w500,
+                  ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Colors.black87,
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+        if (subtitle != null) ...[
+          const SizedBox(height: 2),
+          Text(
+            subtitle!,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 11,
+                ),
+          ),
+        ],
       ],
     );
   }

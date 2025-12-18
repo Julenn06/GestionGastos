@@ -153,8 +153,9 @@ class _StatisticsScreenState extends State<StatisticsScreen> with SingleTickerPr
     
     final Map<String, double> data = {};
     
+    // Usar el valor ACTUAL de las inversiones, no el invertido
     for (var investment in investments) {
-      data[investment.type] = (data[investment.type] ?? 0) + investment.amountInvested;
+      data[investment.type] = (data[investment.type] ?? 0) + investment.currentValue;
     }
     
     return data;

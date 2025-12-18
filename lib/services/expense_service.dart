@@ -13,6 +13,7 @@ class ExpenseService extends ChangeNotifier {
   final _uuid = const Uuid();
 
   List<model.Expense> _expenses = [];
+  final Map<String, List<model.Expense>> _expensesByCategoryCache = {};
   bool _isLoading = false;
   String? _error;
 
@@ -38,6 +39,9 @@ class ExpenseService extends ChangeNotifier {
 
       final dbExpenses = await _database.getAllExpenses();
       _expenses = dbExpenses.map((e) => _mapToModel(e)).toList();
+
+      // Limpiar caché
+      _expensesByCategoryCache.clear();
 
       _isLoading = false;
       notifyListeners();
@@ -66,8 +70,18 @@ class ExpenseService extends ChangeNotifier {
   /// Carga gastos filtrados por categoría
   Future<List<model.Expense>> getExpensesByCategory(String category) async {
     try {
+      // Verificar caché
+      if (_expensesByCategoryCache.containsKey(category)) {
+        return _expensesByCategoryCache[category]!;
+      }
+      
       final dbExpenses = await _database.getExpensesByCategory(category);
-      return dbExpenses.map((e) => _mapToModel(e)).toList();
+      final expenses = dbExpenses.map((e) => _mapToModel(e)).toList();
+      
+      // Guardar en caché
+      _expensesByCategoryCache[category] = expenses;
+      
+      return expenses;
     } catch (e) {
       _error = 'Error al filtrar por categoría: $e';
       notifyListeners();

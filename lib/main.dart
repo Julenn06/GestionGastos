@@ -9,8 +9,10 @@ import 'services/quick_action_service.dart';
 import 'services/quick_investment_service.dart';
 import 'services/gamification_service.dart';
 import 'services/category_service.dart';
+import 'services/security_service.dart';
 import 'core/theme/app_theme.dart';
 import 'screens/home/home_screen.dart';
+import 'screens/auth/auth_screen.dart';
 
 /// Punto de entrada principal de la aplicación
 /// 
@@ -72,8 +74,53 @@ class MyApp extends StatelessWidget {
         title: 'Gestión de Gastos',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.darkTheme,
-        home: const HomeScreen(),
+        home: const _InitialScreen(),
       ),
     );
+  }
+}
+
+/// Pantalla inicial que decide si mostrar autenticación o home
+class _InitialScreen extends StatefulWidget {
+  const _InitialScreen();
+
+  @override
+  State<_InitialScreen> createState() => _InitialScreenState();
+}
+
+class _InitialScreenState extends State<_InitialScreen> {
+  final SecurityService _securityService = SecurityService();
+  bool _isChecking = true;
+  bool _requiresAuth = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAuthentication();
+  }
+
+  Future<void> _checkAuthentication() async {
+    final requiresAuth = await _securityService.requiresAuthentication();
+    
+    if (mounted) {
+      setState(() {
+        _requiresAuth = requiresAuth;
+        _isChecking = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isChecking) {
+      return const Scaffold(
+        backgroundColor: AppTheme.backgroundDark,
+        body: Center(
+          child: CircularProgressIndicator(color: AppTheme.primaryColor),
+        ),
+      );
+    }
+
+    return _requiresAuth ? const AuthScreen() : const HomeScreen();
   }
 }

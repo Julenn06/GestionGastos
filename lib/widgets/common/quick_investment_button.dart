@@ -125,118 +125,103 @@ class QuickInvestmentsRow extends StatefulWidget {
 }
 
 class _QuickInvestmentsRowState extends State<QuickInvestmentsRow> {
-  bool _isReordering = false;
-  List<QuickInvestment> _reorderedInvestments = [];
+  List<QuickInvestment> _currentInvestments = [];
 
   @override
   void initState() {
     super.initState();
-    _reorderedInvestments = List.from(widget.investments);
+    _currentInvestments = List.from(widget.investments);
   }
 
   @override
   void didUpdateWidget(QuickInvestmentsRow oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!_isReordering) {
-      _reorderedInvestments = List.from(widget.investments);
-    }
+    _currentInvestments = List.from(widget.investments);
   }
 
-  void _startReordering() {
+  void _onReorder(int oldIndex, int newIndex) {
     setState(() {
-      _isReordering = true;
+      // Limitar newIndex para que no sobrepase la penúltima posición
+      // (la última es el botón "+")
+      final maxIndex = _currentInvestments.length - 1;
+      if (newIndex > maxIndex) {
+        newIndex = maxIndex;
+      }
+      
+      if (newIndex > oldIndex) newIndex--;
+      final item = _currentInvestments.removeAt(oldIndex);
+      _currentInvestments.insert(newIndex, item);
     });
-  }
-
-  void _finishReordering() {
-    setState(() {
-      _isReordering = false;
+    
+    // Guardar automáticamente después de soltar
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (widget.onReorder != null && mounted) {
+        widget.onReorder!(_currentInvestments);
+      }
     });
-    if (widget.onReorder != null) {
-      widget.onReorder!(_reorderedInvestments);
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final displayInvestments = _isReordering ? _reorderedInvestments : widget.investments;
-
-    if (_isReordering) {
-      return Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: AppTheme.paddingM, vertical: 8),
-            color: AppTheme.secondaryColor.withValues(alpha: 0.2),
-            child: Row(
-              children: [
-                const Icon(Icons.info_outline, size: 16, color: AppTheme.secondaryColor),
-                const SizedBox(width: 8),
-                const Expanded(
-                  child: Text(
-                    'Arrastra para reordenar',
-                    style: TextStyle(color: AppTheme.secondaryColor, fontSize: 12),
-                  ),
-                ),
-                TextButton(
-                  onPressed: _finishReordering,
-                  child: const Text('Listo', style: TextStyle(color: AppTheme.secondaryColor, fontWeight: FontWeight.bold)),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(
-            height: 120,
-            child: ReorderableListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: AppTheme.paddingM),
-              itemCount: _reorderedInvestments.length,
-              onReorder: (oldIndex, newIndex) {
-                setState(() {
-                  if (newIndex > oldIndex) newIndex--;
-                  final item = _reorderedInvestments.removeAt(oldIndex);
-                  _reorderedInvestments.insert(newIndex, item);
-                });
-              },
-              itemBuilder: (context, index) {
-                final investment = _reorderedInvestments[index];
-                return Padding(
-                  key: ValueKey(investment.id),
-                  padding: const EdgeInsets.only(right: AppTheme.paddingS),
-                  child: QuickInvestmentButton(
-                    investment: investment,
-                    onTap: () {},
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      );
-    }
-
+    final investmentCount = _currentInvestments.length;
+    
     return SizedBox(
       height: 120,
-      child: ListView.builder(
+      child: ReorderableListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: displayInvestments.length + 1,
         padding: const EdgeInsets.symmetric(horizontal: AppTheme.paddingM),
+        itemCount: investmentCount + 1, // +1 para el botón +
+        onReorder: (oldIndex, newIndex) {
+          // No permitir reordenar el botón + (última posición)
+          if (oldIndex == investmentCount || newIndex == investmentCount) {
+            return; // Ignorar si se intenta mover el botón +
+          }
+          _onReorder(oldIndex, newIndex);
+        },
+        proxyDecorator: (child, index, animation) {
+          return AnimatedBuilder(
+            animation: animation,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: 1.1,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusM),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.primaryColor.withValues(alpha: 0.4),
+                        blurRadius: 16,
+                        spreadRadius: 4,
+                      ),
+                    ],
+                  ),
+                  child: child,
+                ),
+              );
+            },
+            child: child,
+          );
+        },
         itemBuilder: (context, index) {
-          if (index == displayInvestments.length) {
+          // Último elemento: botón de agregar (no reordenable)
+          if (index == investmentCount) {
             return Padding(
+              key: const ValueKey('add_button'),
               padding: const EdgeInsets.only(right: AppTheme.paddingS),
-              child: _AddQuickInvestmentButton(onTap: widget.onAddNew),
+              child: IgnorePointer(
+                child: _AddQuickInvestmentButton(onTap: widget.onAddNew),
+              ),
             );
           }
 
-          final investment = displayInvestments[index];
+          // Elementos reordenables
+          final investment = _currentInvestments[index];
           return Padding(
+            key: ValueKey(investment.id),
             padding: const EdgeInsets.only(right: AppTheme.paddingS),
-            child: GestureDetector(
-              onLongPress: _startReordering,
-              child: QuickInvestmentButton(
-                investment: investment,
-                onTap: () => widget.onInvestmentTap(investment),
-              ),
+            child: QuickInvestmentButton(
+              investment: investment,
+              onTap: () => widget.onInvestmentTap(investment),
             ),
           );
         },

@@ -17,6 +17,60 @@ class InvestmentHistoryScreen extends StatefulWidget {
 
 class _InvestmentHistoryScreenState extends State<InvestmentHistoryScreen> {
   final DateFormat _dateFormat = DateFormat('dd/MM/yyyy');
+  bool _isUpdatingPrices = false;
+
+  Future<void> _updateAllPrices() async {
+    setState(() {
+      _isUpdatingPrices = true;
+    });
+
+    final investmentService = context.read<InvestmentService>();
+    final results = await investmentService.updateAllPricesFromApi();
+
+    setState(() {
+      _isUpdatingPrices = false;
+    });
+
+    if (mounted) {
+      final successCount = results.values.where((success) => success).length;
+      final totalCount = results.length;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Actualizado: $successCount de $totalCount inversiones'),
+          backgroundColor: successCount > 0 ? AppTheme.successColor : AppTheme.warningColor,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  Future<void> _updateSinglePrice(String investmentId, String name) async {
+    final investmentService = context.read<InvestmentService>();
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    final success = await investmentService.updatePriceFromApi(investmentId);
+
+    if (mounted) {
+      Navigator.pop(context); // Cerrar loading
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success 
+              ? 'Precio de $name actualizado' 
+              : 'No se pudo actualizar el precio de $name'),
+          backgroundColor: success ? AppTheme.successColor : AppTheme.errorColor,
+        ),
+      );
+    }
+  }
 
   Future<void> _deleteInvestment(String id) async {
     final confirmed = await showDialog<bool>(
@@ -57,6 +111,22 @@ class _InvestmentHistoryScreenState extends State<InvestmentHistoryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mis Inversiones'),
+        actions: [
+          IconButton(
+            icon: _isUpdatingPrices
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : const Icon(Icons.refresh),
+            onPressed: _isUpdatingPrices ? null : _updateAllPrices,
+            tooltip: 'Actualizar todos los precios',
+          ),
+        ],
       ),
       body: Consumer<InvestmentService>(
         builder: (context, investmentService, _) {
@@ -93,6 +163,7 @@ class _InvestmentHistoryScreenState extends State<InvestmentHistoryScreen> {
               final isProfit = profitLoss >= 0;
 
               return Card(
+                key: ValueKey(investment.id),
                 margin: const EdgeInsets.only(bottom: AppTheme.paddingM),
                 child: ListTile(
                   leading: CircleAvatar(
@@ -144,30 +215,48 @@ class _InvestmentHistoryScreenState extends State<InvestmentHistoryScreen> {
                       ),
                       PopupMenuButton(
                         icon: const Icon(Icons.more_vert),
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'edit',
-                            child: Row(
-                              children: [
-                                Icon(Icons.edit, size: 20),
-                                SizedBox(width: 8),
-                                Text('Editar'),
-                              ],
+                        itemBuilder: (context) {
+                          final investmentService = context.read<InvestmentService>();
+                          final supportsUpdate = investmentService.supportsAutomaticPriceUpdate(investment.id);
+                          
+                          return [
+                            if (supportsUpdate)
+                              const PopupMenuItem(
+                                value: 'update',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.sync, size: 20, color: AppTheme.primaryColor),
+                                    SizedBox(width: 8),
+                                    Text('Actualizar Precio'),
+                                  ],
+                                ),
+                              ),
+                            const PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Editar'),
+                                ],
+                              ),
                             ),
-                          ),
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Row(
-                              children: [
-                                Icon(Icons.delete, size: 20, color: AppTheme.errorColor),
-                                SizedBox(width: 8),
-                                Text('Eliminar', style: TextStyle(color: AppTheme.errorColor)),
-                              ],
+                            const PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete, size: 20, color: AppTheme.errorColor),
+                                  SizedBox(width: 8),
+                                  Text('Eliminar', style: TextStyle(color: AppTheme.errorColor)),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ];
+                        },
                         onSelected: (value) async {
-                          if (value == 'edit') {
+                          if (value == 'update') {
+                            await _updateSinglePrice(investment.id, investment.name);
+                          } else if (value == 'edit') {
                             await Navigator.push(
                               context,
                               MaterialPageRoute(
